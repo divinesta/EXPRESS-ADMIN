@@ -1,12 +1,29 @@
 {
-  "name": "express-admin",
-  "module": "index.ts",
+  "name": "prisma-express-admin",
+  "version": "0.1.0",
+  "description": "A Django-admin-like tool for Express + Prisma",
+  "module": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target node",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.4.0",
+    "prisma": "^7.5.0"
   },
   "peerDependencies": {
-    "typescript": "^5"
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.5.0",
+    "express": "^5.2.1"
   }
 }
