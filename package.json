@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@prisma/client": "^7.5.0",
+    "@prisma/internals": "^7.5.0",
     "express": "^5.2.1"
   }
 }
