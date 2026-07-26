@@ -1,86 +1,42 @@
-import { describe, expect, test } from "bun:test";
+import { afterAll, afterEach, beforeAll, describe, expect, test } from "bun:test";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { Router } from "express";
-import type { PrismaClient } from "../../generated/prisma/client";
+import { PrismaClient } from "../../generated/prisma/client";
 import { createCrudRouter } from "../../src/api/routerFactory.ts";
 import { introspect } from "../../src/core/introspector.ts";
 import type { FullRegisteredModel } from "../../src/core/registry.ts";
 import type { AdminUser } from "../../src/core/types.ts";
 
-type RecordData = Record<string, unknown>;
+const databaseUrl = process.env.DATABASE_URL;
+const tenantA: AdminUser = { id: "integration-tenant-a", email: "tenant-a@example.test", role: "ADMIN", isSuperAdmin: false };
+const tenantB: AdminUser = { id: "integration-tenant-b", email: "tenant-b@example.test", role: "ADMIN", isSuperAdmin: false };
 
-function matchesWhere(record: RecordData, where: RecordData): boolean {
-   if (Array.isArray(where.AND)) return where.AND.every((condition) => matchesWhere(record, condition as RecordData));
-   return Object.entries(where).every(([fieldName, value]) => fieldName === "AND" || record[fieldName] === value);
-}
-
-function selectRecord(record: RecordData, select: Record<string, true> | undefined): RecordData {
-   if (!select) return { ...record };
-   return Object.fromEntries(Object.keys(select).map((fieldName) => [fieldName, record[fieldName]]));
-}
-
-function createFakePrisma(records: RecordData[]) {
-   const post = {
-      async findMany(args: Record<string, unknown>) {
-         const where = args.where as RecordData;
-         const select = args.select as Record<string, true> | undefined;
-         const skip = args.skip as number;
-         const take = args.take as number;
-         return records.filter((record) => matchesWhere(record, where)).slice(skip, skip + take).map((record) => selectRecord(record, select));
-      },
-      async findFirst(args: Record<string, unknown>) {
-         const record = records.find((candidate) => matchesWhere(candidate, args.where as RecordData));
-         return record ? selectRecord(record, args.select as Record<string, true> | undefined) : null;
-      },
-      async count(args: Record<string, unknown>) {
-         return records.filter((record) => matchesWhere(record, args.where as RecordData)).length;
-      },
-      async create(args: Record<string, unknown>) {
-         const record = { id: `post-${records.length + 1}`, published: false, ...(args.data as RecordData) };
-         records.push(record);
-         return selectRecord(record, args.select as Record<string, true> | undefined);
-      },
-      async updateMany(args: Record<string, unknown>) {
-         const matchingRecords = records.filter((record) => matchesWhere(record, args.where as RecordData));
-         for (const record of matchingRecords) Object.assign(record, args.data);
-         return { count: matchingRecords.length };
-      },
-      async deleteMany(args: Record<string, unknown>) {
-         const indexes = records.flatMap((record, index) => (matchesWhere(record, args.where as RecordData) ? [index] : []));
-         for (const index of indexes.reverse()) records.splice(index, 1);
-         return { count: indexes.length };
-      },
-   };
-
-   return { post } as unknown as PrismaClient;
-}
-
-async function createPostRouter(records: RecordData[]): Promise<Router> {
+async function createPostRouter(prisma: PrismaClient): Promise<Router> {
    const postMeta = (await introspect()).get("Post");
    if (!postMeta) throw new Error("Expected the test Prisma schema to contain Post.");
 
+   const permissions = { list: ["ADMIN"], view: ["ADMIN"], create: ["ADMIN"], update: ["ADMIN"], delete: ["ADMIN"] };
    const model: FullRegisteredModel = {
       meta: postMeta,
-      raw: {
-         scope: async (adminUser) => ({ authorId: adminUser.id }),
-         permissions: { list: ["ADMIN"], view: ["ADMIN"], create: ["ADMIN"], update: ["ADMIN"], delete: ["ADMIN"] },
-      },
+      raw: { scope: async (adminUser) => ({ authorId: adminUser.id }), permissions },
       resolved: {
-         listDisplay: ["title", "published"],
-         listFilter: [],
+         listDisplay: ["title", "author", "published"],
+         listFilter: ["published", "createdAt"],
          searchFields: ["title"],
          defaultSort: { field: "createdAt", direction: "desc" },
          perPage: 25,
          fieldsets: [],
-         permissions: { list: ["ADMIN"], view: ["ADMIN"], create: ["ADMIN"], update: ["ADMIN"], delete: ["ADMIN"] },
+         permissions,
       },
    };
 
-   return createCrudRouter(new Map([["posts", model]]), createFakePrisma(records));
+   return createCrudRouter(new Map([["posts", model]]), prisma, "postgresql");
 }
 
 async function dispatch(router: Router, method: string, url: string, adminUser?: AdminUser, body?: unknown): Promise<{ status: number; body: unknown }> {
    return new Promise((resolve, reject) => {
-      const req = { method, url, originalUrl: url, query: {}, params: {}, body, adminUser };
+      const requestUrl = new URL(url, "http://integration.test");
+      const req = { method, url, originalUrl: url, query: Object.fromEntries(requestUrl.searchParams), params: {}, body, adminUser };
       const res = {
          statusCode: 200,
          status(status: number) {
@@ -101,44 +57,99 @@ async function dispatch(router: Router, method: string, url: string, adminUser?:
    });
 }
 
-const tenantA: AdminUser = { id: "tenant-a", email: "a@example.com", role: "ADMIN", isSuperAdmin: false };
-const tenantB: AdminUser = { id: "tenant-b", email: "b@example.com", role: "ADMIN", isSuperAdmin: false };
+if (!databaseUrl) {
+   test.skip("real PostgreSQL CRUD integration requires DATABASE_URL", () => {});
+} else {
+   const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: databaseUrl }) });
+   let router: Router;
 
-describe("scalar CRUD scope integration", () => {
-   test("does not let tenant A list, view, update, or delete tenant B's record", async () => {
-      const records: RecordData[] = [
-         { id: "post-a", title: "Tenant A post", content: null, published: false, authorId: "tenant-a", createdAt: "2026-01-01", updatedAt: "2026-01-01" },
-         { id: "post-b", title: "Tenant B post", content: null, published: false, authorId: "tenant-b", createdAt: "2026-01-02", updatedAt: "2026-01-02" },
-      ];
-      const router = await createPostRouter(records);
+   async function resetDatabase() {
+      await prisma.post.deleteMany({ where: { authorId: { in: [tenantA.id, tenantB.id] } } });
+      await prisma.user.deleteMany({ where: { id: { in: [tenantA.id, tenantB.id] } } });
+   }
 
-      const list = await dispatch(router, "GET", "/posts", tenantA);
-      expect(list.status).toBe(200);
-      expect((list.body as { records: RecordData[] }).records.map((record) => record.id)).toEqual(["post-a"]);
+   async function seedTenants() {
+      await prisma.user.createMany({
+         data: [
+            { id: tenantA.id, email: tenantA.email, fullName: "Integration Tenant A" },
+            { id: tenantB.id, email: tenantB.email, fullName: "Integration Tenant B" },
+         ],
+      });
+   }
 
-      expect((await dispatch(router, "GET", "/posts/post-b", tenantA)).status).toBe(404);
-      expect((await dispatch(router, "PUT", "/posts/post-b", tenantA, { title: "Stolen" })).status).toBe(404);
-      expect((await dispatch(router, "DELETE", "/posts/post-b", tenantA)).status).toBe(404);
-      expect((await dispatch(router, "PUT", "/posts/post-a", tenantA, { authorId: "tenant-b" })).status).toBe(400);
-      expect(records.find((record) => record.id === "post-a")?.authorId).toBe("tenant-a");
-      expect(records.find((record) => record.id === "post-b")?.title).toBe("Tenant B post");
+   describe("scalar CRUD scope integration with PostgreSQL", () => {
+      beforeAll(async () => {
+         await prisma.$connect();
+         router = await createPostRouter(prisma);
+      });
+
+      afterEach(resetDatabase);
+      afterAll(async () => {
+         await resetDatabase();
+         await prisma.$disconnect();
+      });
+
+      test("does not let tenant A list, view, update, or delete tenant B's record", async () => {
+         await seedTenants();
+         await prisma.post.createMany({
+            data: [
+               { id: "integration-post-a", title: "Tenant A post", authorId: tenantA.id },
+               { id: "integration-post-b", title: "Tenant B post", authorId: tenantB.id },
+            ],
+         });
+
+         const list = await dispatch(router, "GET", "/posts", tenantA);
+         expect(list.status).toBe(200);
+         expect((list.body as { records: Array<{ id: string }> }).records.map((record) => record.id)).toEqual(["integration-post-a"]);
+
+         expect((await dispatch(router, "GET", "/posts/integration-post-b", tenantA)).status).toBe(404);
+         expect((await dispatch(router, "PUT", "/posts/integration-post-b", tenantA, { title: "Stolen" })).status).toBe(404);
+         expect((await dispatch(router, "DELETE", "/posts/integration-post-b", tenantA)).status).toBe(404);
+         expect((await dispatch(router, "PUT", "/posts/integration-post-a", tenantA, { authorId: tenantB.id })).status).toBe(400);
+         expect((await prisma.post.findUniqueOrThrow({ where: { id: "integration-post-b" } })).title).toBe("Tenant B post");
+      });
+
+      test("forces created records into the authenticated tenant and allows its own mutations", async () => {
+         await seedTenants();
+
+         expect((await dispatch(router, "GET", "/posts")).status).toBe(401);
+
+         const created = await dispatch(router, "POST", "/posts", tenantA, { title: "A new post", published: true });
+         expect(created.status).toBe(201);
+         const record = created.body as { id: string; authorId: string };
+         expect(record.authorId).toBe(tenantA.id);
+         expect((await dispatch(router, "GET", `/posts/${record.id}`, tenantB)).status).toBe(404);
+
+         const updated = await dispatch(router, "PUT", `/posts/${record.id}`, tenantA, { title: "Renamed post" });
+         expect(updated.status).toBe(200);
+         expect((await prisma.post.findUniqueOrThrow({ where: { id: record.id } })).title).toBe("Renamed post");
+         expect((await dispatch(router, "DELETE", `/posts/${record.id}`, tenantA)).status).toBe(204);
+         expect(await prisma.post.count({ where: { id: record.id } })).toBe(0);
+      });
+
+      test("uses declared filters, date ranges, search fields, and relation display reads", async () => {
+         await seedTenants();
+         await prisma.post.createMany({
+            data: [
+               { id: "integration-search-report", title: "Quarterly Report", published: true, authorId: tenantA.id, createdAt: new Date("2026-04-15T00:00:00.000Z") },
+               { id: "integration-search-draft", title: "Draft Notes", published: false, authorId: tenantA.id, createdAt: new Date("2026-01-15T00:00:00.000Z") },
+            ],
+         });
+
+         const searched = await dispatch(router, "GET", "/posts?search=quarterly", tenantA);
+         expect(searched.status).toBe(200);
+         expect((searched.body as { records: Array<{ id: string; author: { email: string } }> }).records.map((record) => ({ id: record.id, author: record.author }))).toEqual([
+            { id: "integration-search-report", author: { email: tenantA.email } },
+         ]);
+
+         const filtered = await dispatch(router, "GET", "/posts?published=true&createdAt_gte=2026-03-01T00%3A00%3A00.000Z", tenantA);
+         expect(filtered.status).toBe(200);
+         expect((filtered.body as { records: Array<{ id: string }> }).records.map((record) => record.id)).toEqual(["integration-search-report"]);
+         const disallowedFilter = await dispatch(router, "GET", "/posts?authorId=integration-tenant-b", tenantA);
+         expect(disallowedFilter).toEqual({
+            status: 400,
+            body: { error: "Filter \"authorId\" is not allowed for this model.", code: "VALIDATION_ERROR" },
+         });
+      });
    });
-
-   test("forces created records into the authenticated tenant and rejects anonymous requests", async () => {
-      const records: RecordData[] = [];
-      const router = await createPostRouter(records);
-
-      expect((await dispatch(router, "GET", "/posts")).status).toBe(401);
-
-      const created = await dispatch(router, "POST", "/posts", tenantA, { title: "A new post", published: true });
-      expect(created.status).toBe(201);
-      expect((created.body as RecordData).authorId).toBe("tenant-a");
-      expect((await dispatch(router, "GET", "/posts/post-1", tenantB)).status).toBe(404);
-
-      const updated = await dispatch(router, "PUT", "/posts/post-1", tenantA, { title: "Renamed post" });
-      expect(updated.status).toBe(200);
-      expect((updated.body as RecordData).title).toBe("Renamed post");
-      expect((await dispatch(router, "DELETE", "/posts/post-1", tenantA)).status).toBe(204);
-      expect(records).toHaveLength(0);
-   });
-});
+}

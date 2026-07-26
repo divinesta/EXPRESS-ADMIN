@@ -1,16 +1,14 @@
 import type { AdminFieldMeta, AdminModelMeta, ModelConfig } from "../core/types.ts";
+import { AdminApiError } from "./errors.ts";
 
 // ============================================================
 // REQUEST VALIDATION
 // ============================================================
 
 /** An error a route can safely return to an API caller. */
-export class RequestValidationError extends Error {
-   readonly status = 400;
-   readonly code = "VALIDATION_ERROR";
-
+export class RequestValidationError extends AdminApiError {
    constructor(message: string) {
-      super(message);
+      super(400, "VALIDATION_ERROR", message);
       this.name = "RequestValidationError";
    }
 }
@@ -19,7 +17,7 @@ export class RequestValidationError extends Error {
  * Conservative name matching for data that should not appear in an admin by
  * accident. Developers can make a deliberate exception with `{ expose: true }`.
  */
-function isSensitiveFieldName(name: string): boolean {
+export function isSensitiveFieldName(name: string): boolean {
    return /password|token|secret|api[_-]?key|credential|private[_-]?key/i.test(name);
 }
 

@@ -5,6 +5,7 @@ import { AdminRegistry } from "./core/registry.ts";
 import { createSchemaEndpoint } from "./api/schemaEndpoint.ts";
 import { createAuthenticationMiddleware } from "./auth/middleware.ts";
 import { createCrudRouter } from "./api/routerFactory.ts";
+import { createApiErrorHandler } from "./api/errors.ts";
 
 // ============================================================
 // PUBLIC API
@@ -87,7 +88,8 @@ export function createAdmin(config: AdminConfig) {
 
          // Scalar CRUD routes. Each route enforces authentication, model
          // permissions, tenant scope, and request validation before Prisma.
-         router.use("/api", createCrudRouter(new Map(registry.getAll().map((model) => [model.meta.pluralName, model])), config.prisma));
+         router.use("/api", createCrudRouter(new Map(registry.getAll().map((model) => [model.meta.pluralName, model])), config.prisma, config.databaseProvider));
+         router.use("/api", createApiErrorHandler());
 
          // ── Step 3: Mount the router ──────────────────────────
          app.use(basePath, router);

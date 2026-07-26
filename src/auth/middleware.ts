@@ -1,5 +1,6 @@
 import type { RequestHandler } from "express";
 import type { AdminUser, AuthConfig } from "../core/types.ts";
+import { AuthenticationError, sendApiError } from "../api/errors.ts";
 
 // ============================================================
 // AUTHENTICATION MIDDLEWARE
@@ -28,7 +29,7 @@ export function createAuthenticationMiddleware(auth: AuthConfig): RequestHandler
          const adminUser = await auth.getCurrentUser(req);
 
          if (!isAdminUser(adminUser)) {
-            res.status(401).json({ error: "Authentication required", code: "AUTHENTICATION_REQUIRED" });
+            sendApiError(res, new AuthenticationError());
             return;
          }
 
@@ -36,7 +37,7 @@ export function createAuthenticationMiddleware(auth: AuthConfig): RequestHandler
          next();
       } catch {
          // Do not expose authentication-adapter failures to a caller.
-         res.status(401).json({ error: "Authentication required", code: "AUTHENTICATION_REQUIRED" });
+         sendApiError(res, new AuthenticationError());
       }
    };
 }
