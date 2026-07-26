@@ -1,9 +1,10 @@
-import { Router } from "express";
+import { json, Router } from "express";
 import type { Application } from "express";
 import type { AdminConfig, ModelConfig } from "./core/types.ts";
 import { AdminRegistry } from "./core/registry.ts";
 import { createSchemaEndpoint } from "./api/schemaEndpoint.ts";
 import { createAuthenticationMiddleware } from "./auth/middleware.ts";
+import { createCrudRouter } from "./api/routerFactory.ts";
 
 // ============================================================
 // PUBLIC API
@@ -72,6 +73,8 @@ export function createAdmin(config: AdminConfig) {
          const router = Router();
 
          // ── Step 2: Register routes ────────────────────────────
+         router.use(json());
+
          // Every API endpoint requires an authenticated admin. The middleware
          // resolves config.auth.getCurrentUser(req) once and exposes its
          // verified result as req.adminUser for later permission and scope checks.
@@ -82,7 +85,9 @@ export function createAdmin(config: AdminConfig) {
          // The UI calls this once on load to drive all list/form/filter views.
          router.get("/api/schema", createSchemaEndpoint(registry, config));
 
-         // TODO: CRUD routes        → src/api/routerFactory.ts
+         // Scalar CRUD routes. Each route enforces authentication, model
+         // permissions, tenant scope, and request validation before Prisma.
+         router.use("/api", createCrudRouter(new Map(registry.getAll().map((model) => [model.meta.pluralName, model])), config.prisma));
 
          // ── Step 3: Mount the router ──────────────────────────
          app.use(basePath, router);

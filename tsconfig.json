@@ -4,6 +4,10 @@
     "lib": [
       "ESNext"
     ],
+    "types": [
+      "bun",
+      "node"
+    ],
     "target": "ESNext",
     "module": "ESNext",
     "moduleDetection": "force",
