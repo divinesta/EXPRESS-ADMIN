@@ -1,6 +1,7 @@
 import type { RequestHandler } from "express";
 import type { AdminConfig, SchemaResponse } from "../core/types.ts";
 import type { AdminRegistry } from "../core/registry.ts";
+import { isFieldVisible } from "./validation.ts";
 
 // ============================================================
 // SCHEMA ENDPOINT
@@ -62,18 +63,31 @@ export function createSchemaEndpoint(registry: AdminRegistry, config: AdminConfi
       const response: SchemaResponse = {
          siteName,
          basePath,
-         models: models.map(({ meta, resolved }) => ({
-            meta,
-            config: {
-               listDisplay: resolved.listDisplay,
-               listFilter: resolved.listFilter,
-               searchFields: resolved.searchFields,
+         models: models.map(({ meta, resolved, raw }) => {
+            const visibleFields = meta.fields.filter((field) => isFieldVisible(field, raw));
+            const visibleFieldNames = new Set(visibleFields.map((field) => field.name));
+
+            return {
+               meta: {
+                  ...meta,
+                  fields: visibleFields,
+                  searchableFields: meta.searchableFields.filter((fieldName) => visibleFieldNames.has(fieldName)),
+                  filterableFields: meta.filterableFields.filter((fieldName) => visibleFieldNames.has(fieldName)),
+               },
+               config: {
+                  listDisplay: resolved.listDisplay.filter((fieldName) => visibleFieldNames.has(fieldName)),
+                  listFilter: resolved.listFilter.filter((fieldName) => visibleFieldNames.has(fieldName)),
+                  searchFields: resolved.searchFields.filter((fieldName) => visibleFieldNames.has(fieldName)),
                defaultSort: resolved.defaultSort,
                perPage: resolved.perPage,
-               fieldsets: resolved.fieldsets,
+                  fieldsets: resolved.fieldsets.map((fieldset) => ({
+                     ...fieldset,
+                     fields: fieldset.fields.filter((fieldName) => visibleFieldNames.has(fieldName)),
+                  })),
                permissions: resolved.permissions,
             },
-         })),
+            };
+         }),
       };
 
       res.json(response);

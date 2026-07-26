@@ -3,6 +3,7 @@ import type { Application } from "express";
 import type { AdminConfig, ModelConfig } from "./core/types.ts";
 import { AdminRegistry } from "./core/registry.ts";
 import { createSchemaEndpoint } from "./api/schemaEndpoint.ts";
+import { createAuthenticationMiddleware } from "./auth/middleware.ts";
 
 // ============================================================
 // PUBLIC API
@@ -71,12 +72,16 @@ export function createAdmin(config: AdminConfig) {
          const router = Router();
 
          // ── Step 2: Register routes ────────────────────────────
+         // Every API endpoint requires an authenticated admin. The middleware
+         // resolves config.auth.getCurrentUser(req) once and exposes its
+         // verified result as req.adminUser for later permission and scope checks.
+         router.use("/api", createAuthenticationMiddleware(config.auth));
+
          // Schema endpoint — GET /admin/api/schema
          // Returns all registered models + resolved config as JSON.
          // The UI calls this once on load to drive all list/form/filter views.
          router.get("/api/schema", createSchemaEndpoint(registry, config));
 
-         // TODO: auth middleware    → src/auth/middleware.ts
          // TODO: CRUD routes        → src/api/routerFactory.ts
 
          // ── Step 3: Mount the router ──────────────────────────

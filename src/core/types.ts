@@ -246,6 +246,12 @@ export interface AdminFieldOverride {
    /** If true, this field is completely hidden from the admin UI */
    exclude?: boolean;
 
+   /**
+    * Explicitly allow a sensitive field to be exposed by the admin. Sensitive
+    * field names are hidden by default, even when the field is introspected.
+    */
+   expose?: boolean;
+
    /** Override the display label for this field */
    label?: string;
 

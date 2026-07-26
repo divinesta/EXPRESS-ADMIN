@@ -2,7 +2,7 @@
 
 ## The Advantage: Prisma's DMMF
 
-The reason this is *feasible* for Prisma specifically is **DMMF** (Data Model Meta Format). When you run `prisma generate`, Prisma creates a full JSON representation of your schema that's accessible at runtime:
+The reason this is *feasible* for Prisma specifically is **DMMF** (Data Model Meta Format): a structured representation of the Prisma schema. The library uses it to discover models, fields, relations, and enums without asking developers to duplicate their schema in an admin configuration.
 
 ```typescript
 import { Prisma } from '@prisma/client';
@@ -11,9 +11,23 @@ const dmmf = Prisma.dmmf;
 // dmmf.datamodel.models → every model, field, relation, enum
 ```
 
-This is your equivalent of Django's model introspection. **Everything below builds on this.**
+This is the conceptual equivalent of Django's model introspection. **Everything below builds on this metadata.**
 
-> ⚠️ **DMMF Stability Warning:** `Prisma.dmmf` is not formally part of Prisma's public API surface. It is accessible and widely used, but Prisma has broken its shape between major versions before. Treat it as a dependency you actively maintain: pin your supported Prisma peer dependency range (`"prisma": ">=5.0.0 <7.0.0"`), run your test suite against each new Prisma minor, and document the version matrix clearly in your README. This is non-negotiable for a published library.
+> ⚠️ **DMMF Stability Warning:** DMMF shapes can change between Prisma releases. Treat them as a dependency you actively maintain: pin a supported Prisma peer-dependency range, test every supported Prisma minor, and document the version matrix clearly in the README. This is non-negotiable for a published library.
+
+### The Chosen Introspection Contract
+
+The implementation should use `getDMMF()` from `@prisma/internals` at `admin.mount()`, reading the application's `schema.prisma` file. `Prisma.dmmf` is useful for explaining the data structure, but it is not the library's runtime contract.
+
+In simple terms: there are two ways to read the same schema description. Reading `Prisma.dmmf` means relying on metadata attached to the generated client at runtime. Reading the schema through `getDMMF()` means parsing the project's schema file when the admin is mounted. This project has already started with the second approach, so the documentation and public API should consistently require an accessible schema path (defaulting to `prisma/schema.prisma`).
+
+This choice gives clearer startup validation and avoids depending on a client-internal runtime property. It also means a deployed application must include its Prisma schema file, or explicitly pass `schemaPath`.
+
+### Prisma Version Support
+
+The project currently uses Prisma 7.5. The earlier example range ending before Prisma 7 and the current package version cannot both be true: the former says “do not support Prisma 7,” while the latter installs Prisma 7.
+
+For the initial release, support Prisma 7 only and declare it consistently in the package and documentation—for example, `"@prisma/client": ">=7.5.0 <8.0.0"` and `"prisma": ">=7.5.0 <8.0.0"`. Broaden that range only after the test matrix proves compatibility.
 
 ---
 
@@ -569,6 +583,18 @@ If users use `prisma.$queryRaw` or Postgres views mapped with `@@map`, those won
 
 ---
 
+## V1 Safety and Scope Guardrails
+
+These are requirements for the first usable release, not polish to add later.
+
+1. **Start with a narrow write model.** Support registered models, scalar fields, and `belongsTo` relation selectors. Defer inline editing, nested creates, many-to-many writes, uploads, rich text, JSON editing, dashboards, and plugins until the core CRUD path is proven.
+2. **Apply scope to every record operation.** `scope()` must constrain list, detail, update, delete, and bulk-action queries—not only list queries. An administrator must never be able to access another tenant's record by guessing its ID.
+3. **Make sensitive fields opt-in.** Do not expose every introspected field by default. Password hashes, access tokens, secrets, internal flags, and sensitive personal data must require an explicit configuration choice before they can be returned or shown in a form.
+4. **Validate at the API boundary.** Reject unknown models, fields, sort keys, filters, action names, record IDs, and write payload properties before they reach Prisma. Metadata should drive both the UI and the server-side allowlist.
+5. **Test authorization as a core feature.** Add integration tests that prove a user from tenant A cannot view, update, delete, export, or run an action on a tenant B record.
+
+---
+
 ### Architecture
 
 ```mermaid
@@ -837,8 +863,11 @@ The MVP goal is: a developer can `npm install prisma-admin`, call `admin.registe
 - ✅ Auto-generated create/edit forms
 - ✅ Basic auth (session-based, pluggable `loginCheck`)
 - ✅ Enum dropdowns, boolean toggles, datetime pickers
-- ✅ `scope` function for multi-tenant filtering
+- ✅ `scope` function enforced for list, detail, update, and delete operations
+- ✅ Server-side allowlists for fields, filters, sorting, and write payloads
+- ✅ Sensitive fields excluded unless explicitly enabled
 - ❌ No inline editing of relations
+- ❌ No nested relation writes or many-to-many editing
 - ❌ No custom actions
 - ❌ No audit log
 - ❌ No role-based permissions (auth is all-or-nothing)
@@ -891,8 +920,8 @@ These are not optional for a publishable library. Skipping any of them will kill
 ```json
 {
   "peerDependencies": {
-    "@prisma/client": ">=5.0.0",
-    "prisma": ">=5.0.0",
+    "@prisma/client": ">=7.5.0 <8.0.0",
+    "prisma": ">=7.5.0 <8.0.0",
     "express": ">=4.0.0"
   }
 }
