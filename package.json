@@ -9,7 +9,8 @@
   "private": true,
   "scripts": {
     "dev": "bun run --watch src/index.ts",
-    "build": "bun build src/index.ts --outdir dist --target node",
+    "build": "bun run build:ui && bun build src/index.ts --outdir dist --target node",
+    "build:ui": "bun run --cwd ui build",
     "test": "bun test",
     "test:unit": "bun test tests/unit",
     "test:integration": "bun test tests/integration",

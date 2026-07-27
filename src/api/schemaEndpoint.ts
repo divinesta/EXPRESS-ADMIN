@@ -1,6 +1,8 @@
 import type { RequestHandler } from "express";
 import type { AdminConfig, SchemaResponse } from "../core/types.ts";
 import type { AdminRegistry } from "../core/registry.ts";
+import { hasActionPermission, hasModelPermission } from "../auth/permissions.ts";
+import { AuthenticationError, sendApiError } from "./errors.ts";
 import { isFieldVisible } from "./validation.ts";
 
 // ============================================================
@@ -57,10 +59,22 @@ export function createSchemaEndpoint(registry: AdminRegistry, config: AdminConfi
    const basePath = config.basePath ?? "/admin";
    const siteName = config.siteName ?? "Prisma Admin";
 
-   return (_req, res) => {
+   return (req, res) => {
+      const adminUser = req.adminUser;
+      if (!adminUser) {
+         sendApiError(res, new AuthenticationError());
+         return;
+      }
+
       const models = registry.getAll();
 
       const response: SchemaResponse = {
+         identity: {
+            id: adminUser.id,
+            email: adminUser.email,
+            role: adminUser.role,
+            isSuperAdmin: adminUser.isSuperAdmin,
+         },
          siteName,
          basePath,
          models: models.map(({ meta, resolved, raw }) => {
@@ -84,7 +98,16 @@ export function createSchemaEndpoint(registry: AdminRegistry, config: AdminConfi
                      ...fieldset,
                      fields: fieldset.fields.filter((fieldName) => visibleFieldNames.has(fieldName)),
                   })),
-               permissions: resolved.permissions,
+               permissions: {
+                  list: hasModelPermission(adminUser, resolved.permissions, "list"),
+                  view: hasModelPermission(adminUser, resolved.permissions, "view"),
+                  create: hasModelPermission(adminUser, resolved.permissions, "create"),
+                  update: hasModelPermission(adminUser, resolved.permissions, "update"),
+                  delete: hasModelPermission(adminUser, resolved.permissions, "delete"),
+                  actions: Object.fromEntries(
+                     (raw.actions ?? []).map((action) => [action.name, hasActionPermission(adminUser, resolved.permissions, action.name)]),
+                  ),
+               },
             },
             };
          }),

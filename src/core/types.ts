@@ -568,6 +568,13 @@ export interface PaginatedResponse<T> {
  * on load and uses it to render every list, form, and filter panel.
  */
 export interface SchemaResponse {
+   /** Safe identity of the authenticated admin who requested the schema. */
+   identity: {
+      id: string;
+      email: string;
+      role: string;
+      isSuperAdmin: boolean;
+   };
    models: Array<{
       meta: AdminModelMeta;
       config: {
@@ -577,7 +584,15 @@ export interface SchemaResponse {
          defaultSort: { field: string; direction: "asc" | "desc" };
          perPage: number;
          fieldsets: AdminFieldset[];
-         permissions: ModelPermissions;
+         /** Effective permissions for this admin, ready for UI decisions. */
+         permissions: {
+            list: boolean;
+            view: boolean;
+            create: boolean;
+            update: boolean;
+            delete: boolean;
+            actions: Record<string, boolean>;
+         };
       };
    }>;
    siteName: string;

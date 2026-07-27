@@ -1,5 +1,7 @@
-import { json, Router } from "express";
+import { json, Router, static as expressStatic } from "express";
 import type { Application } from "express";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import type { AdminConfig, ModelConfig } from "./core/types.ts";
 import { AdminRegistry } from "./core/registry.ts";
 import { createSchemaEndpoint } from "./api/schemaEndpoint.ts";
@@ -90,6 +92,15 @@ export function createAdmin(config: AdminConfig) {
          // permissions, tenant scope, and request validation before Prisma.
          router.use("/api", createCrudRouter(new Map(registry.getAll().map((model) => [model.meta.pluralName, model])), config.prisma, config.databaseProvider));
          router.use("/api", createApiErrorHandler());
+
+         // The UI is a pre-built Vite SPA. Keep this after /api so API routes
+         // always win, then fall back to index.html for client-side routes such
+         // as /admin/posts/123.
+         const uiDist = resolve(dirname(fileURLToPath(import.meta.url)), "../ui/dist");
+         router.use(expressStatic(uiDist, { index: "index.html" }));
+         router.get(/^(?!\/api(?:\/|$)).*/, (_req, res) => {
+            res.sendFile(resolve(uiDist, "index.html"));
+         });
 
          // ── Step 3: Mount the router ──────────────────────────
          app.use(basePath, router);
