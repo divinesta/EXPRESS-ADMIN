@@ -1,3 +1,4 @@
+import { ArrowUpRight } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import type { Schema } from "../types";
 import { formatDate } from "../utils/format";
@@ -11,9 +12,6 @@ export const Dashboard = ({ schema }: { schema: Schema }) => {
             <div>
                <h1>Good to see you.</h1>
                <p>Choose a model to start managing your data.</p>
-            </div>
-            <div className="system-pill">
-               <span className="status-dot" /> All systems operational
             </div>
          </div>
          <div className="overview-grid">
@@ -53,7 +51,7 @@ export const Dashboard = ({ schema }: { schema: Schema }) => {
                         {model.meta.fields.length} fields · {model.config.permissions.create ? "Can create" : "Read only"}
                      </small>
                   </span>
-                  <span className="arrow">↗</span>
+                  <ArrowUpRight className="arrow" size={18} strokeWidth={1.75} aria-hidden />
                </NavLink>
             ))}
          </div>

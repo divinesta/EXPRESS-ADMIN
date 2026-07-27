@@ -1,3 +1,4 @@
+import { ArrowRight } from "lucide-react";
 import type { Field } from "../types";
 import { fieldLabel } from "../utils/format";
 
@@ -39,7 +40,7 @@ export const DateRangeControl = ({ field, from, to, onChange }: { field: Field; 
    <span className="filter-control date-range-control">
       <span>{fieldLabel(field.name)}</span>
       <input aria-label={`${fieldLabel(field.name)} from`} type="date" value={from} onChange={(event) => onChange("gte", event.target.value)} />
-      <span>→</span>
+      <ArrowRight size={12} strokeWidth={1.75} aria-hidden />
       <input aria-label={`${fieldLabel(field.name)} to`} type="date" value={to} onChange={(event) => onChange("lte", event.target.value)} />
    </span>
 );

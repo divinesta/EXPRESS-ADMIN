@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { BrowserRouter, NavLink, Route, Routes, useLocation } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { ArrowLeft, Home, LayoutDashboard, Menu } from "lucide-react";
+import { BrowserRouter, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { FullPageState, NotFound } from "./components/Feedback";
 import { CreateView } from "./pages/CreateView";
 import { Dashboard } from "./pages/Dashboard";
@@ -24,8 +25,26 @@ export const App = () => {
 const AdminShell = ({ schema }: { schema: Schema }) => {
    const [sidebarOpen, setSidebarOpen] = useState(false);
    const location = useLocation();
-   const activeModel = schema.models.find((model) => location.pathname.includes(`/${model.meta.pluralName}`));
+   const navigate = useNavigate();
+   const segments = location.pathname.split("/").filter(Boolean);
+   const activeModel = schema.models.find((model) => segments[0] === model.meta.pluralName);
    const closeSidebar = () => setSidebarOpen(false);
+
+   const crumbLabel = useMemo(() => {
+      if (!activeModel) return "Overview";
+      if (segments[1] === "new") return `New ${activeModel.meta.name}`;
+      if (segments[2] === "edit") return `Edit ${activeModel.meta.name}`;
+      if (segments[1]) return activeModel.meta.name;
+      return activeModel.meta.name;
+   }, [activeModel, segments]);
+
+   const backTarget = useMemo(() => {
+      if (!activeModel) return null;
+      if (segments[2] === "edit" && segments[1]) return `/${activeModel.meta.pluralName}/${segments[1]}`;
+      if (segments[1] === "new" || segments[1]) return `/${activeModel.meta.pluralName}`;
+      return "/";
+   }, [activeModel, segments]);
+
    return (
       <div className="app-frame">
          <div className={`scrim ${sidebarOpen ? "is-visible" : ""}`} onClick={closeSidebar} />
@@ -40,7 +59,7 @@ const AdminShell = ({ schema }: { schema: Schema }) => {
             <nav className="primary-nav" aria-label="Primary navigation">
                <div className="nav-label">Workspace</div>
                <NavLink to="/" end className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`} onClick={closeSidebar}>
-                  <span className="nav-icon">⌂</span>
+                  <LayoutDashboard className="nav-icon" size={18} strokeWidth={1.75} aria-hidden />
                   <span>Overview</span>
                </NavLink>
                <div className="nav-label models-label">Models</div>
@@ -59,13 +78,24 @@ const AdminShell = ({ schema }: { schema: Schema }) => {
          </aside>
          <main className="main-panel">
             <header className="topbar">
-               <button className="menu-button" type="button" aria-label="Open navigation" onClick={() => setSidebarOpen(true)}>
-                  ☰
-               </button>
-               <div className="breadcrumb">
-                  <span>Admin</span>
-                  <span className="breadcrumb-separator">/</span>
-                  <strong>{activeModel?.meta.name ?? "Overview"}</strong>
+               <div className="topbar-left">
+                  <button className="menu-button" type="button" aria-label="Open navigation" onClick={() => setSidebarOpen(true)}>
+                     <Menu size={20} strokeWidth={1.75} aria-hidden />
+                  </button>
+                  {backTarget ? (
+                     <button className="breadcrumb-back" type="button" aria-label="Go back" onClick={() => navigate(backTarget)}>
+                        <ArrowLeft size={16} strokeWidth={2} aria-hidden />
+                     </button>
+                  ) : (
+                     <span className="breadcrumb-home" aria-hidden>
+                        <Home size={15} strokeWidth={1.75} />
+                     </span>
+                  )}
+                  <div className="breadcrumb">
+                     <span>Admin</span>
+                     <span className="breadcrumb-separator">/</span>
+                     <strong>{crumbLabel}</strong>
+                  </div>
                </div>
                <div className="identity-chip">
                   <div className="avatar">{schema.identity.email.slice(0, 1).toUpperCase()}</div>

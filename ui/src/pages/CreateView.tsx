@@ -1,10 +1,10 @@
-import { type FormEvent, useEffect, useState } from "react";
+import { type FormEvent, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiBase, fetchRecord, readApiError } from "../api";
 import { ApiNotice, NotFound } from "../components/Feedback";
 import { AutoFormField } from "../components/AutoForm";
 import { useFormModel } from "../hooks/useFormModel";
-import type { Model, Schema } from "../types";
+import type { Schema } from "../types";
 import { extractFieldName, toDateInput } from "../utils/format";
 import { writableFields } from "../utils/fieldResolver";
 
@@ -71,9 +71,6 @@ export const CreateView = ({ schema, mode }: { schema: Schema; mode: "create" | 
    };
    return (
       <section className="page-section">
-         <button className="back-link" type="button" onClick={() => navigate(mode === "edit" ? `/${model.meta.pluralName}/${id}` : `/${model.meta.pluralName}`)}>
-            ← Cancel
-         </button>
          <div className="page-heading">
             <div>
                <div className="eyebrow">{mode === "create" ? "New record" : "Edit record"}</div>

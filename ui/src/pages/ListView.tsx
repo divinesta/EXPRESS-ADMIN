@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight, Plus, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { ApiNotice, NotFound } from "../components/Feedback";
@@ -41,12 +42,8 @@ export const ListView = ({ schema }: { schema: Schema }) => {
    };
    return (
       <section className="page-section">
-         <button className="back-link" type="button" onClick={() => navigate("/")}>
-            ← Back to overview
-         </button>
          <div className="page-heading model-list-heading">
             <div>
-               <div className="eyebrow">Model workspace</div>
                <h1>{model.meta.name}</h1>
                <p>
                   {data.total} {data.total === 1 ? "record" : "records"} available to your account.
@@ -54,7 +51,8 @@ export const ListView = ({ schema }: { schema: Schema }) => {
             </div>
             {model.config.permissions.create && (
                <NavLink className="primary-button" to={`/${model.meta.pluralName}/new`}>
-                  ＋ New {model.meta.name}
+                  <Plus size={15} strokeWidth={2} aria-hidden />
+                  New {model.meta.name}
                </NavLink>
             )}
          </div>
@@ -67,7 +65,7 @@ export const ListView = ({ schema }: { schema: Schema }) => {
                   setSearch(searchDraft.trim());
                }}
             >
-               <span>⌕</span>
+               <Search size={15} strokeWidth={1.75} aria-hidden />
                <input aria-label={`Search ${model.meta.name}`} value={searchDraft} onChange={(event) => setSearchDraft(event.target.value)} placeholder={`Search ${model.meta.name.toLowerCase()}…`} />
                <button type="submit">Search</button>
             </form>
@@ -116,14 +114,14 @@ export const ListView = ({ schema }: { schema: Schema }) => {
                      Showing {data.records.length ? (page - 1) * model.config.perPage + 1 : 0}–{Math.min((page - 1) * model.config.perPage + data.records.length, data.total)} of {data.total}
                   </span>
                   <div className="pagination">
-                     <button type="button" disabled={page <= 1} onClick={() => setPage((current) => current - 1)}>
-                        ←
+                     <button type="button" aria-label="Previous page" disabled={page <= 1} onClick={() => setPage((current) => current - 1)}>
+                        <ChevronLeft size={14} strokeWidth={2} aria-hidden />
                      </button>
                      <span>
                         Page {page} of {data.totalPages}
                      </span>
-                     <button type="button" disabled={page >= data.totalPages} onClick={() => setPage((current) => current + 1)}>
-                        →
+                     <button type="button" aria-label="Next page" disabled={page >= data.totalPages} onClick={() => setPage((current) => current + 1)}>
+                        <ChevronRight size={14} strokeWidth={2} aria-hidden />
                      </button>
                   </div>
                </div>

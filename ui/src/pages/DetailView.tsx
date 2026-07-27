@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { apiBase, fetchRecord, readApiError } from "../api";
 import { ApiNotice, NotFound } from "../components/Feedback";
-import type { Model, RecordData, Schema } from "../types";
+import type { RecordData, Schema } from "../types";
 import { fieldLabel, formatRecordValue } from "../utils/format";
 
 export const DetailView = ({ schema }: { schema: Schema }) => {
@@ -43,9 +43,6 @@ export const DetailView = ({ schema }: { schema: Schema }) => {
    };
    return (
       <section className="page-section">
-         <button className="back-link" type="button" onClick={() => navigate(`/${model.meta.pluralName}`)}>
-            ← Back to {model.meta.name} list
-         </button>
          <div className="page-heading model-list-heading">
             <div>
                <div className="eyebrow">Record detail</div>

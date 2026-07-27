@@ -1,3 +1,4 @@
+import { ArrowDown, ArrowRight, ArrowUp, ArrowUpDown } from "lucide-react";
 import type { Field, RecordData } from "../types";
 import { fieldLabel, formatRecordValue } from "../utils/format";
 
@@ -27,7 +28,8 @@ export const DataTable = ({
                {fields.map((field) => (
                   <th key={field.name}>
                      <button className="sort-button" type="button" onClick={() => onSort(field.name)}>
-                        {fieldLabel(field.name)} {sort === field.name ? (dir === "asc" ? "↑" : "↓") : "↕"}
+                        <span>{fieldLabel(field.name)}</span>
+                        {sort === field.name ? dir === "asc" ? <ArrowUp size={12} strokeWidth={2} aria-hidden /> : <ArrowDown size={12} strokeWidth={2} aria-hidden /> : <ArrowUpDown size={12} strokeWidth={1.75} aria-hidden />}
                      </button>
                   </th>
                ))}
@@ -47,7 +49,11 @@ export const DataTable = ({
                      {fields.map((field) => (
                         <td key={field.name}>{formatRecordValue(record[field.name], field)}</td>
                      ))}
-                     {canView && <td className="row-arrow">→</td>}
+                     {canView && (
+                        <td className="row-arrow">
+                           <ArrowRight size={16} strokeWidth={1.75} aria-hidden />
+                        </td>
+                     )}
                   </tr>
                ))
             )}
