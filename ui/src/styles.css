@@ -810,6 +810,90 @@ tbody tr:last-child td {
 .form-field.has-error select {
    border-color: #d78370;
 }
+.relation-select {
+   display: flex;
+   flex-direction: column;
+   gap: 7px;
+}
+.relation-search-row {
+   display: flex;
+   gap: 8px;
+}
+.relation-search-row input {
+   background: #fbfcfc;
+   border: 1px solid #dfe7e9;
+   border-radius: 7px;
+   color: #2d464e;
+   flex: 1;
+   font-size: 12px;
+   outline: 0;
+   padding: 11px;
+   min-width: 0;
+}
+.relation-search-row input:focus {
+   border-color: #a8d96a;
+   box-shadow: 0 0 0 3px rgba(168, 217, 106, 0.14);
+}
+.relation-select.has-error .relation-search-row input {
+   border-color: #d78370;
+}
+.relation-clear {
+   background: #fff;
+   border: 1px solid #dfe7e9;
+   border-radius: 7px;
+   color: #657a81;
+   cursor: pointer;
+   font-size: 11px;
+   padding: 0 11px;
+}
+.relation-clear:hover {
+   background: #f5f8f0;
+   border-color: #c7dca0;
+   color: #4b6730;
+}
+.relation-help {
+   color: #80929a;
+   font-size: 10px;
+   line-height: 1.4;
+}
+.relation-results {
+   background: #fff;
+   border: 1px solid #dfe7e9;
+   border-radius: 8px;
+   list-style: none;
+   margin: 0;
+   max-height: 190px;
+   overflow-y: auto;
+   padding: 4px;
+}
+.relation-results button {
+   background: transparent;
+   border: 0;
+   border-radius: 5px;
+   color: #2d464e;
+   cursor: pointer;
+   display: flex;
+   flex-direction: column;
+   font: inherit;
+   gap: 2px;
+   padding: 9px;
+   text-align: left;
+   width: 100%;
+}
+.relation-results button:hover,
+.relation-results button:focus-visible {
+   background: #f2f8e7;
+   outline: 0;
+}
+.relation-results strong {
+   font-size: 12px;
+   font-weight: 600;
+}
+.relation-results span {
+   color: #84959c;
+   font-family: "DM Mono", monospace;
+   font-size: 9px;
+}
 .form-error {
    color: #b55e4e;
    font-size: 10px;

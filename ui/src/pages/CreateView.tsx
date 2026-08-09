@@ -5,7 +5,7 @@ import { ApiNotice, NotFound } from "../components/Feedback";
 import { AutoFormField } from "../components/AutoForm";
 import { useFormModel } from "../hooks/useFormModel";
 import type { Schema } from "../types";
-import { extractFieldName, toDateInput } from "../utils/format";
+import { extractFieldName, fieldLabel, toDateInput } from "../utils/format";
 import { writableFields } from "../utils/fieldResolver";
 
 export const CreateView = ({ schema, mode }: { schema: Schema; mode: "create" | "edit" }) => {
@@ -13,6 +13,15 @@ export const CreateView = ({ schema, mode }: { schema: Schema; mode: "create" | 
    const navigate = useNavigate();
    const model = schema.models.find((candidate) => candidate.meta.pluralName === modelPath);
    const fields = model ? writableFields(model.meta.fields) : [];
+   const relationModelsByForeignKey = new Map(
+      model?.meta.fields.flatMap((field) => {
+         const relation = field.relation;
+         if (field.type !== "relation" || !relation || (relation.kind !== "belongsTo" && relation.kind !== "hasOne") || relation.foreignKeyFields.length !== 1) return [];
+         const relatedModel = schema.models.find((candidate) => candidate.meta.name === relation.model);
+         if (!relatedModel?.config.permissions.list) return [];
+         return [[relation.foreignKeyFields[0], { label: fieldLabel(field.name), pluralName: relatedModel.meta.pluralName, idField: relatedModel.meta.idField, displayField: relation.displayField }] as const];
+      }) ?? [],
+   );
    const form = useFormModel(fields);
    useEffect(() => {
       if (mode !== "edit" || !model || !id) return;
@@ -87,6 +96,7 @@ export const CreateView = ({ schema, mode }: { schema: Schema; mode: "create" | 
                      key={field.name}
                      value={form.values[field.name] ?? (field.type === "boolean" ? false : "")}
                      error={form.fieldErrors[field.name]}
+                     relationModel={relationModelsByForeignKey.get(field.name)}
                      onChange={(value) => form.setValues((current) => ({ ...current, [field.name]: value }))}
                   />
                ))}

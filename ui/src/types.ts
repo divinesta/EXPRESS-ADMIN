@@ -7,7 +7,12 @@ export type Field = {
   isList?: boolean;
   defaultValue?: unknown;
   enumValues?: string[];
-  relation?: { model: string; displayField: string } | null;
+  relation?: {
+    model: string;
+    displayField: string;
+    kind: "belongsTo" | "hasMany" | "manyToMany" | "hasOne";
+    foreignKeyFields: string[];
+  } | null;
 };
 
 export type ModelPermissions = {
