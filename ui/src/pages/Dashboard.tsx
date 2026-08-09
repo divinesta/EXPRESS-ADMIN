@@ -8,7 +8,7 @@ export const Dashboard = ({ schema }: { schema: Schema }) => {
    return (
       <section className="page-section">
          <div className="eyebrow">{formatDate(new Date())}</div>
-         <div className="page-heading">
+         {/* <div className="page-heading">
             <div>
                <h1>Good to see you.</h1>
                <p>Choose a model to start managing your data.</p>
@@ -34,7 +34,7 @@ export const Dashboard = ({ schema }: { schema: Schema }) => {
                <strong>{visibleModels.length.toString().padStart(2, "0")}</strong>
                <span className="metric-foot">Visible to your account</span>
             </div>
-         </div>
+         </div> */}
          <div className="section-heading">
             <div>
                <h2>Available models</h2>

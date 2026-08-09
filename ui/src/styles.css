@@ -98,7 +98,7 @@ a {
    border-radius: 8px;
    color: #9db0b5;
    display: flex;
-   font-size: 13px;
+   font-size: 15px;
    gap: 10px;
    padding: 9px 10px;
    transition:
@@ -619,7 +619,7 @@ th {
    border-bottom: 1px solid #e9eff0;
    color: #87969d;
    font-family: "DM Mono", monospace;
-   font-size: 9px;
+   font-size: 13px;
    font-weight: 500;
    letter-spacing: 0.06em;
    padding: 11px 14px;
@@ -644,7 +644,7 @@ th {
 td {
    border-bottom: 1px solid #edf1f2;
    color: #445b63;
-   font-size: 12px;
+   font-size: 14px;
    padding: 12px 14px;
 }
 tbody tr:last-child td {
