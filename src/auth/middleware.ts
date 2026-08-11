@@ -1,6 +1,6 @@
 import type { RequestHandler } from "express";
-import type { AdminUser, AuthConfig } from "../core/types.ts";
-import { AuthenticationError, sendApiError } from "../api/errors.ts";
+import type { AdminUser, AuthConfig } from "../core/types.js";
+import { AuthenticationError, sendApiError } from "../api/errors.js";
 
 // ============================================================
 // AUTHENTICATION MIDDLEWARE

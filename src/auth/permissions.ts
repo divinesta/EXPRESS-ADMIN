@@ -1,4 +1,4 @@
-import type { AdminUser, ModelPermissions } from "../core/types.ts";
+import type { AdminUser, ModelPermissions } from "../core/types.js";
 
 // ============================================================
 // MODEL PERMISSIONS

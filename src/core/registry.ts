@@ -1,5 +1,5 @@
-import type { AdminModelMeta, ModelConfig, RegisteredModel, AdminFieldset, ModelPermissions } from "./types.ts";
-import { introspect, type IntrospectOptions } from "./introspector.ts";
+import type { AdminModelMeta, ModelConfig, RegisteredModel, AdminFieldset, ModelPermissions } from "./types.js";
+import { introspect, type IntrospectOptions } from "./introspector.js";
 
 // ============================================================
 // DEFAULT RESOLUTION

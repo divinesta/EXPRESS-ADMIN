@@ -2,12 +2,12 @@ import { json, Router, static as expressStatic } from "express";
 import type { Application } from "express";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { AdminConfig, ModelConfig } from "./core/types.ts";
-import { AdminRegistry } from "./core/registry.ts";
-import { createSchemaEndpoint } from "./api/schemaEndpoint.ts";
-import { createAuthenticationMiddleware } from "./auth/middleware.ts";
-import { createCrudRouter } from "./api/routerFactory.ts";
-import { createApiErrorHandler } from "./api/errors.ts";
+import type { AdminConfig, ModelConfig } from "./core/types.js";
+import { AdminRegistry } from "./core/registry.js";
+import { createSchemaEndpoint } from "./api/schemaEndpoint.js";
+import { createAuthenticationMiddleware } from "./auth/middleware.js";
+import { createCrudRouter } from "./api/routerFactory.js";
+import { createApiErrorHandler } from "./api/errors.js";
 
 // ============================================================
 // PUBLIC API
@@ -29,10 +29,15 @@ import { createApiErrorHandler } from "./api/errors.ts";
  * await admin.mount(app)
  * ```
  */
-export function createAdmin(config: AdminConfig) {
+export interface Admin {
+   register(modelName: string, modelConfig?: ModelConfig): Admin;
+   mount(app: Application): Promise<void>;
+}
+
+export function createAdmin(config: AdminConfig): Admin {
    const registry = new AdminRegistry();
 
-   const admin = {
+   const admin: Admin = {
       /**
        * Register a Prisma model with the admin panel.
        *
@@ -137,5 +142,5 @@ export type {
    AuditLogEntry,
    AdminPlugin,
    PrismaLike,
-} from "./core/types.ts";
-export type { ResolvedModelConfig, FullRegisteredModel } from "./core/registry.ts";
+} from "./core/types.js";
+export type { ResolvedModelConfig, FullRegisteredModel } from "./core/registry.js";

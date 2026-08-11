@@ -1,8 +1,10 @@
-import { getDMMF } from "@prisma/internals";
 import { readFileSync } from "fs";
+import { createRequire } from "node:module";
 import { resolve } from "path";
 import type * as DMMF from "@prisma/dmmf";
-import type { AdminFieldMeta, AdminFieldType, AdminModelMeta, RelationKind } from "./types.ts";
+import type { AdminFieldMeta, AdminFieldType, AdminModelMeta, RelationKind } from "./types.js";
+
+const { getDMMF } = createRequire(import.meta.url)("@prisma/internals") as typeof import("@prisma/internals");
 
 // ============================================================
 // HELPERS

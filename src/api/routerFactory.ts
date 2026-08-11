@@ -1,11 +1,11 @@
 import { Router } from "express";
 import type { NextFunction, Request, RequestHandler, Response } from "express";
-import { hasModelPermission, type AdminOperation } from "../auth/permissions.ts";
-import type { FullRegisteredModel } from "../core/registry.ts";
-import type { AdminFieldMeta, AdminModelMeta, PrismaLike } from "../core/types.ts";
-import { applyCreateScope, assertScopeFieldsUnchanged, buildScopedRecordWhere, resolveScope } from "./scope.ts";
-import { isFieldVisible, isSensitiveFieldName, RequestValidationError, validateWritePayload } from "./validation.ts";
-import { AdminApiError, AuthenticationError, ModelNotFoundError, PermissionDeniedError, RecordNotFoundError, sendApiError } from "./errors.ts";
+import { hasModelPermission, type AdminOperation } from "../auth/permissions.js";
+import type { FullRegisteredModel } from "../core/registry.js";
+import type { AdminFieldMeta, AdminModelMeta, PrismaLike } from "../core/types.js";
+import { applyCreateScope, assertScopeFieldsUnchanged, buildScopedRecordWhere, resolveScope } from "./scope.js";
+import { isFieldVisible, isSensitiveFieldName, RequestValidationError, validateWritePayload } from "./validation.js";
+import { AdminApiError, AuthenticationError, ModelNotFoundError, PermissionDeniedError, RecordNotFoundError, sendApiError } from "./errors.js";
 
 // ============================================================
 // SCALAR-ONLY CRUD ROUTER

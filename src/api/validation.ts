@@ -1,5 +1,5 @@
-import type { AdminFieldMeta, AdminModelMeta, ModelConfig } from "../core/types.ts";
-import { AdminApiError } from "./errors.ts";
+import type { AdminFieldMeta, AdminModelMeta, ModelConfig } from "../core/types.js";
+import { AdminApiError } from "./errors.js";
 
 // ============================================================
 // REQUEST VALIDATION

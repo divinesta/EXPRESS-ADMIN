@@ -2,14 +2,41 @@
   "name": "prisma-express-admin",
   "version": "0.1.0",
   "description": "A Django-admin-like tool for Express + Prisma",
-  "module": "src/index.ts",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "type": "module",
-  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/divinesta/EXPRESS-ADMIN.git"
+  },
+  "bugs": {
+    "url": "https://github.com/divinesta/EXPRESS-ADMIN/issues"
+  },
+  "homepage": "https://github.com/divinesta/EXPRESS-ADMIN#readme",
+  "keywords": [
+    "express",
+    "prisma",
+    "admin",
+    "admin-panel"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "ui/dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": "^20.19 || ^22.12 || >=24.0",
+    "bun": ">=1.3.0"
+  },
   "scripts": {
     "dev": "bun run --watch examples/basic/index.ts",
-    "build": "bun run build:ui && bun build src/index.ts --outdir dist --target node",
+    "build": "bun run build:ui && bun build src/index.ts --outdir dist --target node --external express --external @prisma/internals && tsc --project tsconfig.build.json",
     "build:ui": "bun run --cwd ui build",
     "test": "bun test",
     "test:unit": "bun test tests/unit",
@@ -20,19 +47,21 @@
   },
   "devDependencies": {
     "@prisma/adapter-pg": "7.5.0",
+    "@prisma/client": "~7.5.0",
     "@types/bun": "latest",
     "@types/express": "^5.0.6",
     "@types/node": "^25.4.0",
     "@types/pg": "^8.20.0",
     "pg": "^8.22.0",
-    "prisma": "^7.5.0"
-  },
-  "peerDependencies": {
+    "prisma": "~7.5.0",
     "typescript": "^5.9.3"
   },
+  "peerDependencies": {
+    "@prisma/client": "~7.5.0",
+    "express": "^4.18.0 || ^5.0.0",
+    "prisma": "~7.5.0"
+  },
   "dependencies": {
-    "@prisma/client": "^7.5.0",
-    "@prisma/internals": "^7.5.0",
-    "express": "^5.2.1"
+    "@prisma/internals": "~7.5.0"
   }
 }

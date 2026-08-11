@@ -5,21 +5,23 @@
     "": {
       "name": "express-admin",
       "dependencies": {
-        "@prisma/client": "^7.5.0",
-        "@prisma/internals": "^7.5.0",
-        "express": "^5.2.1",
+        "@prisma/internals": "~7.5.0",
       },
       "devDependencies": {
         "@prisma/adapter-pg": "7.5.0",
+        "@prisma/client": "~7.5.0",
         "@types/bun": "latest",
         "@types/express": "^5.0.6",
         "@types/node": "^25.4.0",
         "@types/pg": "^8.20.0",
         "pg": "^8.22.0",
-        "prisma": "^7.5.0",
+        "prisma": "~7.5.0",
+        "typescript": "^5.9.3",
       },
       "peerDependencies": {
-        "typescript": "^5.9.3",
+        "@prisma/client": "~7.5.0",
+        "express": "^4.18.0 || ^5.0.0",
+        "prisma": "~7.5.0",
       },
     },
   },

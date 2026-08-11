@@ -1,5 +1,5 @@
-import type { AdminUser, ModelConfig } from "../core/types.ts";
-import { RequestValidationError } from "./validation.ts";
+import type { AdminUser, ModelConfig } from "../core/types.js";
+import { RequestValidationError } from "./validation.js";
 
 // ============================================================
 // QUERY SCOPING

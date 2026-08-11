@@ -1,9 +1,9 @@
 import type { RequestHandler } from "express";
-import type { AdminConfig, SchemaResponse } from "../core/types.ts";
-import type { AdminRegistry } from "../core/registry.ts";
-import { hasActionPermission, hasModelPermission } from "../auth/permissions.ts";
-import { AuthenticationError, sendApiError } from "./errors.ts";
-import { isFieldVisible } from "./validation.ts";
+import type { AdminConfig, SchemaResponse } from "../core/types.js";
+import type { AdminRegistry } from "../core/registry.js";
+import { hasActionPermission, hasModelPermission } from "../auth/permissions.js";
+import { AuthenticationError, sendApiError } from "./errors.js";
+import { isFieldVisible } from "./validation.js";
 
 // ============================================================
 // SCHEMA ENDPOINT
