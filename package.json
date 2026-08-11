@@ -8,7 +8,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "bun run --watch index.ts",
+    "dev": "bun run --watch examples/basic/index.ts",
     "build": "bun run build:ui && bun build src/index.ts --outdir dist --target node",
     "build:ui": "bun run --cwd ui build",
     "test": "bun test",

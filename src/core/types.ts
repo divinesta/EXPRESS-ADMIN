@@ -1,5 +1,11 @@
-import type { PrismaClient } from "../../generated/prisma/client";
 import type { Request, Response, NextFunction } from "express";
+
+/**
+ * The admin operates on Prisma model delegates selected at runtime from DMMF
+ * metadata. It deliberately does not depend on a generated client from this
+ * repository, so consumers can pass their own PrismaClient instance.
+ */
+export type PrismaLike = object;
 
 // ============================================================
 // FIELD TYPES
@@ -201,7 +207,7 @@ export interface AdminAction {
     * adminUser: the currently logged-in admin
     * prisma: the Prisma client instance (for DB operations)
     */
-   handler: (params: { ids: string[]; adminUser: AdminUser; prisma: PrismaClient }) => Promise<{ message: string }>;
+   handler: (params: { ids: string[]; adminUser: AdminUser; prisma: PrismaLike }) => Promise<{ message: string }>;
 
    /** Which roles can run this action. If omitted, any admin can run it. */
    allowedRoles?: string[];
@@ -438,8 +444,8 @@ export interface AuthConfig {
  * This is the entry point for the entire library.
  */
 export interface AdminConfig {
-   /** Your PrismaClient instance */
-   prisma: PrismaClient;
+   /** Your generated PrismaClient instance */
+   prisma: PrismaLike;
 
    /** The base URL path for the admin UI. Default: "/admin" */
    basePath?: string;

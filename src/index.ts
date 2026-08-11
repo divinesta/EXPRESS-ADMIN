@@ -136,5 +136,6 @@ export type {
    SchemaResponse,
    AuditLogEntry,
    AdminPlugin,
+   PrismaLike,
 } from "./core/types.ts";
 export type { ResolvedModelConfig, FullRegisteredModel } from "./core/registry.ts";

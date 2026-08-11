@@ -1,9 +1,8 @@
 import { Router } from "express";
 import type { NextFunction, Request, RequestHandler, Response } from "express";
-import type { PrismaClient } from "../../generated/prisma/client";
 import { hasModelPermission, type AdminOperation } from "../auth/permissions.ts";
 import type { FullRegisteredModel } from "../core/registry.ts";
-import type { AdminFieldMeta, AdminModelMeta } from "../core/types.ts";
+import type { AdminFieldMeta, AdminModelMeta, PrismaLike } from "../core/types.ts";
 import { applyCreateScope, assertScopeFieldsUnchanged, buildScopedRecordWhere, resolveScope } from "./scope.ts";
 import { isFieldVisible, isSensitiveFieldName, RequestValidationError, validateWritePayload } from "./validation.ts";
 import { AdminApiError, AuthenticationError, ModelNotFoundError, PermissionDeniedError, RecordNotFoundError, sendApiError } from "./errors.ts";
@@ -22,7 +21,7 @@ interface PrismaModelDelegate {
    deleteMany(args: Record<string, unknown>): Promise<{ count: number }>;
 }
 
-function getDelegate(prisma: PrismaClient, meta: AdminModelMeta): PrismaModelDelegate {
+function getDelegate(prisma: PrismaLike, meta: AdminModelMeta): PrismaModelDelegate {
    const delegate = (prisma as unknown as Record<string, PrismaModelDelegate | undefined>)[meta.prismaClientKey];
    if (!delegate) throw new Error(`[prisma-express-admin] Prisma client has no delegate for model "${meta.name}".`);
    return delegate;
@@ -208,7 +207,7 @@ function route(handler: (req: Request, res: Response) => Promise<void>): Request
  * Create routes for registered models. Relations, nested writes, and custom
  * actions are deliberately outside this first scalar-only implementation.
  */
-export function createCrudRouter(models: Map<string, FullRegisteredModel>, prisma: PrismaClient, databaseProvider?: string): Router {
+export function createCrudRouter(models: Map<string, FullRegisteredModel>, prisma: PrismaLike, databaseProvider?: string): Router {
    const router = Router();
 
    router.get("/:model", route(async (req, res) => {
