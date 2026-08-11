@@ -15,7 +15,8 @@
     "test:unit": "bun test tests/unit",
     "test:integration": "bun test tests/integration",
     "db:push": "prisma db push",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "landing": "bunx --bun serve landing -l 4173"
   },
   "devDependencies": {
     "@prisma/adapter-pg": "7.5.0",

@@ -1,5 +1,7 @@
 # express-admin
 
+A Django-admin-like tool for Express + Prisma: schema introspection, scoped CRUD API, and a polished operations UI.
+
 To install dependencies:
 
 ```bash
@@ -13,6 +15,16 @@ bun run index.ts
 ```
 
 This project was created using `bun init` in bun v1.3.9. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+
+## Marketing landing page
+
+Preview the product landing page:
+
+```bash
+bun run landing
+```
+
+Open [http://localhost:4173](http://localhost:4173). Source lives in [`landing/`](./landing).
 
 ## Run the local admin UI
 
