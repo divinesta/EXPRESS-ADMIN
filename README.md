@@ -12,8 +12,9 @@ operations UI.
 - Your application's generated Prisma client and `schema.prisma`
 
 The first release supports Prisma 7.5.x only. Prisma internals are version
-coupled, so upgrade Prisma and this package together after a supported version
-is announced.
+coupled, so keep `prisma`, `@prisma/client`, and Prisma Express Admin in that
+same supported range. Upgrade them together after a supported version is
+announced; the [changelog](CHANGELOG.md) records every tested Prisma version.
 
 ## Install
 

@@ -28,7 +28,8 @@
   "files": [
     "dist",
     "ui/dist",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md"
   ],
   "engines": {
     "node": "^20.19 || ^22.12 || >=24.0",

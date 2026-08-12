@@ -417,7 +417,12 @@ export async function introspect(options: IntrospectOptions = {}): Promise<Map<s
    try {
       dmmf = await getDMMF({ datamodel: schemaContent });
    } catch (err) {
-      throw new Error(`[prisma-express-admin] Failed to parse Prisma schema at "${schemaPath}".\n` + `Original error: ${err instanceof Error ? err.message : String(err)}`);
+      throw new Error(
+         `[prisma-express-admin] Could not build Prisma metadata (DMMF) from "${schemaPath}".\n` +
+            `Check that the schema is valid and that prisma, @prisma/client, and prisma-express-admin use compatible versions.\n` +
+            `This release supports Prisma 7.5.x.\n` +
+            `Original error: ${err instanceof Error ? err.message : String(err)}`,
+      );
    }
 
    const { models: dmmfModels, enums: dmmfEnums } = dmmf.datamodel;
