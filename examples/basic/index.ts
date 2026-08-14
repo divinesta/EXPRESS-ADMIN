@@ -1,6 +1,6 @@
 import express from "express";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../../generated/prisma/client";
+import { PrismaClient } from "./generated/prisma/client";
 import { createAdmin } from "../../src/index.ts";
 
 const port = Number(process.env.PORT ?? 3000);

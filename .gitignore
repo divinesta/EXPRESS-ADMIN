@@ -36,5 +36,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .DS_Store
 
 /generated/prisma
+/examples/basic/generated/prisma
 
 LIBRARY_PACKAGING_ROADMAP.md

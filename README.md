@@ -90,19 +90,23 @@ the complete route and validation contract.
 
 ## Developing this repository
 
-The library source is in `src/`. The runnable dogfood application is in
-`examples/basic/`; it uses the root Prisma schema and Compose configuration as
-local development fixtures.
+The library source is in `src/`. The runnable dogfood application is fully
+self-contained in [`examples/basic/`](examples/basic/), including its schema,
+local PostgreSQL service, generated client, and sample data.
 
 ```bash
 bun install
-docker compose up -d postgres
-bun run db:push
+bun run example:db:up
+export DATABASE_URL=postgresql://postgres:postgres@localhost:5435/prisma_express_admin_basic
+bun run example:db:generate
+bun run example:db:push
+bun run example:seed
 bun run dev
 ```
 
 Open `http://localhost:3000/admin` to use the local example. Its authentication
-adapter is intentionally development-only.
+adapter is intentionally development-only; see the
+[example README](examples/basic/README.md) for the complete walkthrough.
 
 Useful checks:
 
