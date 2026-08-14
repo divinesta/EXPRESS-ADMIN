@@ -2,10 +2,10 @@ import type { Field } from "../types";
 import { fieldLabel } from "../utils/format";
 import { RelationSelect, type RelationSelectModel } from "./RelationSelect";
 
-export const FieldInput = ({ field, value, error, relationModel, onChange }: { field: Field; value: string | boolean; error?: string; relationModel?: RelationSelectModel; onChange: (value: string | boolean) => void }) => {
+export const FieldInput = ({ field, value, error, relationModel, relationLabel, onChange }: { field: Field; value: string | boolean; error?: string; relationModel?: RelationSelectModel; relationLabel?: string; onChange: (value: string | boolean) => void }) => {
    const id = `field-${field.name}`;
    if (relationModel) {
-      return <RelationSelect label={`${relationModel.label}${field.isRequired ? " *" : ""}`} model={relationModel} value={String(value)} error={error} onChange={onChange} />;
+      return <RelationSelect label={`${relationModel.label}${field.isRequired ? " *" : ""}`} model={relationModel} value={String(value)} selectedLabel={relationLabel} error={error} onChange={onChange} />;
    }
 
    return (

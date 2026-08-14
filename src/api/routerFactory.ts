@@ -2,7 +2,7 @@ import { Router } from "express";
 import type { NextFunction, Request, RequestHandler, Response } from "express";
 import { hasModelPermission, type AdminOperation } from "../auth/permissions.js";
 import type { FullRegisteredModel } from "../core/registry.js";
-import type { AdminFieldMeta, AdminModelMeta, PrismaLike } from "../core/types.js";
+import type { AdminFieldMeta, AdminModelMeta, AdminUser, PrismaLike } from "../core/types.js";
 import { applyCreateScope, assertScopeFieldsUnchanged, buildScopedRecordWhere, resolveScope } from "./scope.js";
 import { isFieldVisible, isSensitiveFieldName, RequestValidationError, validateWritePayload } from "./validation.js";
 import { AdminApiError, AuthenticationError, ModelNotFoundError, PermissionDeniedError, RecordNotFoundError, sendApiError } from "./errors.js";
@@ -25,6 +25,52 @@ function getDelegate(prisma: PrismaLike, meta: AdminModelMeta): PrismaModelDeleg
    const delegate = (prisma as unknown as Record<string, PrismaModelDelegate | undefined>)[meta.prismaClientKey];
    if (!delegate) throw new Error(`[prisma-express-admin] Prisma client has no delegate for model "${meta.name}".`);
    return delegate;
+}
+
+/**
+ * A relation selector submits the local scalar FK (for example, `authorId`),
+ * never a nested Prisma write. Before accepting it, verify that the selected
+ * related record is visible through the related model's own permission and
+ * tenant scope. This prevents a caller from forging an ID from another tenant.
+ */
+async function assertSelectedRelationsAreVisible(
+   data: Record<string, unknown>,
+   model: FullRegisteredModel,
+   models: Map<string, FullRegisteredModel>,
+   prisma: PrismaLike,
+   adminUser: AdminUser,
+): Promise<void> {
+   const modelsByName = new Map([...models.values()].map((candidate) => [candidate.meta.name, candidate]));
+
+   for (const relationField of model.meta.fields) {
+      const relation = relationField.relation;
+      if (relationField.type !== "relation" || relation?.kind !== "belongsTo" || relation.foreignKeyFields.length !== 1) continue;
+
+      const foreignKeyField = relation.foreignKeyFields[0];
+      if (!foreignKeyField || !(foreignKeyField in data)) continue;
+      const selectedId = data[foreignKeyField];
+      if (selectedId === null) continue;
+
+      const relatedModel = modelsByName.get(relation.model);
+      if (!relatedModel) {
+         // Keep scalar-FK API compatibility when a host registers only one
+         // side of a relation. The UI cannot render a selector in this case.
+         continue;
+      }
+      if (!hasModelPermission(adminUser, relatedModel.resolved.permissions, "list")) {
+         throw new PermissionDeniedError();
+      }
+
+      const relatedScope = await resolveScope(relatedModel.raw, adminUser);
+      const relatedRecord = await getDelegate(prisma, relatedModel.meta).findFirst({
+         where: buildScopedRecordWhere(relatedScope, relatedModel.meta.idField, parseRecordId(relatedModel.meta, String(selectedId))),
+         select: { [relatedModel.meta.idField]: true },
+      });
+
+      if (!relatedRecord) {
+         throw new RequestValidationError(`The selected ${relation.model} record is unavailable.`);
+      }
+   }
 }
 
 function getAdminUser(req: Request, res: Response) {
@@ -256,6 +302,7 @@ export function createCrudRouter(models: Map<string, FullRegisteredModel>, prism
 
       const scope = await resolveScope(model.raw, adminUser);
       let data = applyCreateScope(validateWritePayload(model.meta, model.raw, req.body), scope);
+      await assertSelectedRelationsAreVisible(data, model, models, prisma, adminUser);
       if (model.raw.beforeCreate) data = await model.raw.beforeCreate(data);
 
       const record = await getDelegate(prisma, model.meta).create({ data, select: buildSelect(model.meta, model) });
@@ -274,6 +321,7 @@ export function createCrudRouter(models: Map<string, FullRegisteredModel>, prism
       const id = getRecordId(req, model.meta);
       let data = validateWritePayload(model.meta, model.raw, req.body);
       assertScopeFieldsUnchanged(data, scope);
+      await assertSelectedRelationsAreVisible(data, model, models, prisma, adminUser);
       if (model.raw.beforeUpdate) data = await model.raw.beforeUpdate(String(id), data);
 
       const delegate = getDelegate(prisma, model.meta);

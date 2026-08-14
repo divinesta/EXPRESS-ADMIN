@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiBase, fetchRecord, readApiError } from "../api";
 import { ApiNotice, NotFound } from "../components/Feedback";
@@ -23,6 +23,7 @@ export const CreateView = ({ schema, mode }: { schema: Schema; mode: "create" | 
       }) ?? [],
    );
    const form = useFormModel(fields);
+   const [relationLabels, setRelationLabels] = useState<Record<string, string>>({});
    useEffect(() => {
       if (mode !== "edit" || !model || !id) return;
       fetchRecord(model.meta.pluralName, id)
@@ -32,6 +33,16 @@ export const CreateView = ({ schema, mode }: { schema: Schema; mode: "create" | 
                const value = record[field.name];
                next[field.name] = field.type === "boolean" ? value === true : value == null ? "" : field.type === "datetime" ? toDateInput(String(value)) : String(value);
             });
+            const labels: Record<string, string> = {};
+            relationModelsByForeignKey.forEach((relationModel, foreignKeyField) => {
+               const relationField = model.meta.fields.find((field) => field.type === "relation" && field.relation?.foreignKeyFields.includes(foreignKeyField));
+               const relationRecord = relationField ? record[relationField.name] : undefined;
+               if (typeof relationRecord !== "object" || relationRecord === null || Array.isArray(relationRecord)) return;
+               const relationData = relationRecord as Record<string, unknown>;
+               const label = relationData[relationModel.displayField] ?? record[foreignKeyField];
+               if (label != null) labels[foreignKeyField] = String(label);
+            });
+            setRelationLabels(labels);
             form.setValues(next);
             form.setStatus("ready");
          })
@@ -51,13 +62,22 @@ export const CreateView = ({ schema, mode }: { schema: Schema; mode: "create" | 
       );
    const submit = async (event: FormEvent) => {
       event.preventDefault();
-      form.setStatus("saving");
       form.setError("");
       form.setFieldErrors({});
+      const missingRequiredRelation = fields.find((field) => relationModelsByForeignKey.has(field.name) && field.isRequired && form.values[field.name] === "");
+      if (missingRequiredRelation) {
+         form.setFieldErrors({ [missingRequiredRelation.name]: `${fieldLabel(missingRequiredRelation.name)} is required.` });
+         form.setStatus("ready");
+         return;
+      }
+      form.setStatus("saving");
       const payload: Record<string, unknown> = {};
       fields.forEach((field) => {
          const value = form.values[field.name];
-         if (value === "" && !field.isRequired) return;
+         if (value === "" && !field.isRequired) {
+            if (relationModelsByForeignKey.has(field.name)) payload[field.name] = null;
+            return;
+         }
          payload[field.name] = field.type === "number" ? Number(value) : field.type === "datetime" && typeof value === "string" ? new Date(value).toISOString() : value;
       });
       const url = mode === "create" ? `${apiBase}/${model.meta.pluralName}` : `${apiBase}/${model.meta.pluralName}/${encodeURIComponent(id ?? "")}`;
@@ -97,7 +117,11 @@ export const CreateView = ({ schema, mode }: { schema: Schema; mode: "create" | 
                      value={form.values[field.name] ?? (field.type === "boolean" ? false : "")}
                      error={form.fieldErrors[field.name]}
                      relationModel={relationModelsByForeignKey.get(field.name)}
-                     onChange={(value) => form.setValues((current) => ({ ...current, [field.name]: value }))}
+                     relationLabel={relationLabels[field.name]}
+                     onChange={(value) => {
+                        setRelationLabels((current) => ({ ...current, [field.name]: "" }));
+                        form.setValues((current) => ({ ...current, [field.name]: value }));
+                     }}
                   />
                ))}
             </div>

@@ -83,10 +83,11 @@ const admin = createAdmin({
 ## Current scope
 
 This MVP provides authenticated, permission-aware, tenant-scoped scalar CRUD,
-search, filters, pagination, and relation display fields in lists. Relation
-creation/editing, custom actions, audit logging, nested writes, and file
-uploads are not available yet. See the [API documentation](docs/api.md) for
-the complete route and validation contract.
+search, filters, pagination, relation display fields in lists, and safe
+single-field foreign-key selection for `belongsTo` relations in create/edit
+forms. Custom actions, audit logging, nested writes, many-to-many editing, and
+file uploads are not available yet. See the [API documentation](docs/api.md)
+for the complete route and validation contract.
 
 ## Developing this repository
 

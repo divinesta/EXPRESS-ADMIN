@@ -9,13 +9,22 @@ export type RelationSelectModel = {
    displayField: string;
 };
 
-export const RelationSelect = ({ label, model, value, error, onChange }: { label: string; model: RelationSelectModel; value: string; error?: string; onChange: (value: string) => void }) => {
+export const RelationSelect = ({ label, model, value, selectedLabel, error, onChange }: { label: string; model: RelationSelectModel; value: string; selectedLabel?: string; error?: string; onChange: (value: string) => void }) => {
    const inputId = useId();
    const listboxId = useId();
    const [query, setQuery] = useState("");
+   const [selectionLabel, setSelectionLabel] = useState(selectedLabel ?? "");
    const [records, setRecords] = useState<RecordData[]>([]);
    const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
    const [message, setMessage] = useState("");
+
+   useEffect(() => {
+      if (!value) {
+         setSelectionLabel("");
+         return;
+      }
+      if (selectedLabel && !selectionLabel) setSelectionLabel(selectedLabel);
+   }, [selectedLabel, selectionLabel, value]);
 
    useEffect(() => {
       const search = query.trim();
@@ -56,7 +65,9 @@ export const RelationSelect = ({ label, model, value, error, onChange }: { label
 
    const selectRecord = (record: RecordData) => {
       onChange(String(record[model.idField]));
-      setQuery(String(record[model.displayField] ?? record[model.idField]));
+      const displayValue = String(record[model.displayField] ?? record[model.idField]);
+      setQuery(displayValue);
+      setSelectionLabel(displayValue);
       setRecords([]);
       setStatus("idle");
    };
@@ -76,10 +87,10 @@ export const RelationSelect = ({ label, model, value, error, onChange }: { label
                value={query}
                onChange={(event) => setQuery(event.target.value)}
             />
-            {value && <button className="relation-clear" type="button" onClick={() => { onChange(""); setQuery(""); }}>Clear</button>}
+            {value && <button className="relation-clear" type="button" onClick={() => { onChange(""); setQuery(""); setSelectionLabel(""); }}>Clear</button>}
          </div>
          <span className="relation-help" id={`${inputId}-help`}>
-            {value ? "A related record is selected." : "Type at least two characters, then choose a result."}
+            {value ? `Selected: ${selectionLabel || selectedLabel || value}` : "Type at least two characters, then choose a result."}
          </span>
          {status === "loading" && <span className="relation-help">Searching…</span>}
          {status === "error" && <span className="form-error">{message}</span>}

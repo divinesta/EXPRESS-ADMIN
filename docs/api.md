@@ -1,6 +1,6 @@
 # Scalar CRUD API
 
-This is the first, scalar-only version of the Prisma Express Admin API. It supports registered Prisma models and scalar create/update data. Nested relation writes, inline editing, bulk actions, and file uploads are not supported yet.
+This is the first, scalar-only version of the Prisma Express Admin API. It supports registered Prisma models and scalar create/update data. A create/edit form may submit a single scalar foreign key for a registered `belongsTo` relation; the API verifies the selected related record is visible to the current admin under that model's permission and scope. Nested relation writes, inline editing, bulk actions, and file uploads are not supported yet.
 
 ## Authentication and authorization
 
