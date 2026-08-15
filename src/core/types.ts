@@ -207,7 +207,7 @@ export interface AdminAction {
     * adminUser: the currently logged-in admin
     * prisma: the Prisma client instance (for DB operations)
     */
-   handler: (params: { ids: string[]; adminUser: AdminUser; prisma: PrismaLike }) => Promise<{ message: string }>;
+   handler: (params: { ids: Array<string | number>; adminUser: AdminUser; prisma: PrismaLike }) => Promise<{ message: string }>;
 
    /** Which roles can run this action. If omitted, any admin can run it. */
    allowedRoles?: string[];
@@ -599,6 +599,8 @@ export interface SchemaResponse {
             delete: boolean;
             actions: Record<string, boolean>;
          };
+         /** Actions this admin may run from the model's list view. */
+         actions: Array<{ name: string; label: string }>;
       };
    }>;
    siteName: string;

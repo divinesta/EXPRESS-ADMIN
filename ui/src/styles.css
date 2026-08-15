@@ -605,6 +605,45 @@ a {
    overflow: hidden;
    width: 100%;
 }
+.action-bar {
+   align-items: center;
+   background: #f8fafb;
+   border-bottom: 1px solid #e9eff0;
+   display: flex;
+   flex-wrap: wrap;
+   gap: 8px;
+   padding: 9px 14px;
+}
+.action-selection-count {
+   color: #627780;
+   font-family: "DM Mono", monospace;
+   font-size: 10px;
+   min-width: 72px;
+}
+.action-bar select {
+   background: #fff;
+   border: 1px solid #dfe7e9;
+   border-radius: 7px;
+   color: #314952;
+   font-size: 11px;
+   min-width: 190px;
+   padding: 8px 10px;
+}
+.action-bar .secondary-button {
+   align-items: center;
+   display: inline-flex;
+   gap: 6px;
+   padding: 8px 11px;
+}
+.action-success {
+   background: #f2f8e5;
+   border: 1px solid #d7e9b4;
+   border-radius: 9px;
+   color: #55712d;
+   font-size: 12px;
+   margin-bottom: 14px;
+   padding: 12px 14px;
+}
 .table-scroll {
    overflow-x: auto;
    width: 100%;
@@ -625,6 +664,16 @@ th {
    padding: 11px 14px;
    text-align: left;
    text-transform: uppercase;
+}
+.selection-cell {
+   padding-left: 14px;
+   padding-right: 4px;
+   text-align: center;
+   width: 28px;
+}
+.selection-cell input {
+   accent-color: #6f973d;
+   cursor: pointer;
 }
 .sort-button {
    align-items: center;

@@ -1,7 +1,7 @@
 import type { RequestHandler } from "express";
 import type { AdminConfig, SchemaResponse } from "../core/types.js";
 import type { AdminRegistry } from "../core/registry.js";
-import { hasActionPermission, hasModelPermission } from "../auth/permissions.js";
+import { hasModelPermission, hasRegisteredActionPermission } from "../auth/permissions.js";
 import { AuthenticationError, sendApiError } from "./errors.js";
 import { isFieldVisible } from "./validation.js";
 
@@ -104,10 +104,11 @@ export function createSchemaEndpoint(registry: AdminRegistry, config: AdminConfi
                   create: hasModelPermission(adminUser, resolved.permissions, "create"),
                   update: hasModelPermission(adminUser, resolved.permissions, "update"),
                   delete: hasModelPermission(adminUser, resolved.permissions, "delete"),
-                  actions: Object.fromEntries(
-                     (raw.actions ?? []).map((action) => [action.name, hasActionPermission(adminUser, resolved.permissions, action.name)]),
-                  ),
+                  actions: Object.fromEntries((raw.actions ?? []).map((action) => [action.name, hasRegisteredActionPermission(adminUser, resolved.permissions, action)])),
                },
+               actions: (raw.actions ?? [])
+                  .filter((action) => hasRegisteredActionPermission(adminUser, resolved.permissions, action))
+                  .map(({ name, label }) => ({ name, label })),
             },
             };
          }),

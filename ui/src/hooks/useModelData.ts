@@ -8,6 +8,7 @@ export const useModelData = (model: Model | undefined, page: number, search: str
    const [totalPages, setTotalPages] = useState(1);
    const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
    const [error, setError] = useState("");
+   const [reloadVersion, setReloadVersion] = useState(0);
    useEffect(() => {
       
 		if (!model) return;
@@ -39,7 +40,7 @@ export const useModelData = (model: Model | undefined, page: number, search: str
          });
       
 			return () => controller.abort();
-   }, [filters, model, page, search, sort, dir]);
+   }, [filters, model, page, reloadVersion, search, sort, dir]);
    
-	return { records, total, totalPages, status, error };
+	return { records, total, totalPages, status, error, refresh: () => setReloadVersion((current) => current + 1) };
 };

@@ -36,6 +36,32 @@ admin.register("User", {
 admin.register("Post", {
   listDisplay: ["title", "author", "published", "createdAt"],
   searchFields: ["title", "content"],
+  actions: [
+    {
+      name: "publish_selected",
+      label: "Publish selected posts",
+      allowedRoles: ["SUPER_ADMIN", "ADMIN"],
+      handler: async ({ ids, prisma }) => {
+        const result = await (prisma as PrismaClient).post.updateMany({
+          where: { id: { in: ids.map(String) } },
+          data: { published: true },
+        });
+        return { message: `Published ${result.count} ${result.count === 1 ? "post" : "posts"}.` };
+      },
+    },
+    {
+      name: "unpublish_selected",
+      label: "Move selected posts to draft",
+      allowedRoles: ["SUPER_ADMIN", "ADMIN"],
+      handler: async ({ ids, prisma }) => {
+        const result = await (prisma as PrismaClient).post.updateMany({
+          where: { id: { in: ids.map(String) } },
+          data: { published: false },
+        });
+        return { message: `Moved ${result.count} ${result.count === 1 ? "post" : "posts"} to draft.` };
+      },
+    },
+  ],
 });
 
 await admin.mount(app);

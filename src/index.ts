@@ -7,6 +7,7 @@ import { AdminRegistry } from "./core/registry.js";
 import { createSchemaEndpoint } from "./api/schemaEndpoint.js";
 import { createAuthenticationMiddleware } from "./auth/middleware.js";
 import { createCrudRouter } from "./api/routerFactory.js";
+import { createActionRouter } from "./api/actionRouter.js";
 import { createApiErrorHandler } from "./api/errors.js";
 
 // ============================================================
@@ -95,7 +96,9 @@ export function createAdmin(config: AdminConfig): Admin {
 
          // Scalar CRUD routes. Each route enforces authentication, model
          // permissions, tenant scope, and request validation before Prisma.
-         router.use("/api", createCrudRouter(new Map(registry.getAll().map((model) => [model.meta.pluralName, model])), config.prisma, config.databaseProvider));
+         const modelsByPluralName = new Map(registry.getAll().map((model) => [model.meta.pluralName, model]));
+         router.use("/api", createActionRouter(modelsByPluralName, config.prisma));
+         router.use("/api", createCrudRouter(modelsByPluralName, config.prisma, config.databaseProvider));
          router.use("/api", createApiErrorHandler());
 
          // The UI is a pre-built Vite SPA. Keep this after /api so API routes

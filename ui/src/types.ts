@@ -24,6 +24,11 @@ export type ModelPermissions = {
   actions: Record<string, boolean>;
 };
 
+export type ListAction = {
+  name: string;
+  label: string;
+};
+
 export type Model = {
   meta: {
     name: string;
@@ -39,6 +44,7 @@ export type Model = {
     defaultSort: { field: string; direction: "asc" | "desc" };
     perPage: number;
     permissions: ModelPermissions;
+    actions: ListAction[];
   };
 };
 

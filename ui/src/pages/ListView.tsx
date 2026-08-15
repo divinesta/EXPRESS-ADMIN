@@ -2,10 +2,12 @@ import { ChevronLeft, ChevronRight, Plus, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { ApiNotice, NotFound } from "../components/Feedback";
+import { ActionBar } from "../components/ActionBar";
 import { DataTable } from "../components/DataTable";
 import { DateRangeControl, FilterControl } from "../components/FilterSidebar";
 import { useFilters } from "../hooks/useFilters";
 import { useModelData } from "../hooks/useModelData";
+import { useBulkActions } from "../hooks/useBulkActions";
 import type { Field, Schema } from "../types";
 
 export const ListView = ({ schema }: { schema: Schema }) => {
@@ -19,6 +21,8 @@ export const ListView = ({ schema }: { schema: Schema }) => {
    const [dir, setDir] = useState<"asc" | "desc">(model?.config.defaultSort.direction ?? "desc");
    const { filters, updateFilter, resetFilters } = useFilters();
    const data = useModelData(model, page, search, filters, sort, dir);
+   const bulkActions = useBulkActions(model);
+   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
    if (!model || !model.config.permissions.list) return <NotFound />;
    const listFields = model.config.listDisplay.map((name) => model.meta.fields.find((field) => field.name === name)).filter((field): field is Field => Boolean(field));
    const filterFields = model.config.listFilter.map((name) => model.meta.fields.find((field) => field.name === name)).filter((field): field is Field => Boolean(field));
@@ -39,6 +43,14 @@ export const ListView = ({ schema }: { schema: Schema }) => {
    const changeFilter = (name: string, value: string) => {
       setPage(1);
       updateFilter(name, value);
+   };
+   const runAction = async (action: { name: string; label: string }) => {
+      const ids = [...selectedIds];
+      if (!window.confirm(`Run “${action.label}” for ${ids.length} selected ${ids.length === 1 ? "record" : "records"}?`)) return;
+      if (await bulkActions.run(action.name, ids)) {
+         setSelectedIds(new Set());
+         data.refresh();
+      }
    };
    return (
       <section className="page-section">
@@ -92,6 +104,8 @@ export const ListView = ({ schema }: { schema: Schema }) => {
             </div>
          )}
          {data.status === "error" && <ApiNotice message={data.error} />}
+         {bulkActions.error && <ApiNotice message={bulkActions.error} />}
+         {bulkActions.message && <div className="action-success" role="status">{bulkActions.message}</div>}
          {data.status === "loading" && (
             <div className="table-card table-state">
                <span className="spinner" /> Loading records…
@@ -99,14 +113,31 @@ export const ListView = ({ schema }: { schema: Schema }) => {
          )}
          {data.status === "ready" && (
             <div className="table-card">
+               <ActionBar actions={model.config.actions} selectedCount={selectedIds.size} busy={bulkActions.status === "running"} onRun={runAction} />
                <DataTable
                   records={data.records}
                   fields={listFields}
                   idField={model.meta.idField}
                   canView={model.config.permissions.view}
+                  selectedIds={model.config.actions.length > 0 ? selectedIds : undefined}
                   sort={sort}
                   dir={dir}
                   onSort={toggleSort}
+                  onToggleAll={(selected) => setSelectedIds((current) => {
+                     const next = new Set(current);
+                     data.records.forEach((record) => {
+                        const id = String(record[model.meta.idField]);
+                        if (selected) next.add(id);
+                        else next.delete(id);
+                     });
+                     return next;
+                  })}
+                  onToggleSelected={(id, selected) => setSelectedIds((current) => {
+                     const next = new Set(current);
+                     if (selected) next.add(id);
+                     else next.delete(id);
+                     return next;
+                  })}
                   onOpen={(id) => navigate(`/${model.meta.pluralName}/${id}`)}
                />
                <div className="table-footer">

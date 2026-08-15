@@ -25,9 +25,25 @@ An omitted model permission allows every authenticated admin. `isSuperAdmin: tru
 | `POST` | `/api/:model` | `create` | Create a scalar-only record. |
 | `PUT` | `/api/:model/:id` | `update` | Update scalar writable fields on a scoped record. |
 | `DELETE` | `/api/:model/:id` | `delete` | Delete a scoped record. |
+| `POST` | `/api/:model/actions/:action` | list + action permission | Run a configured action against selected scoped records. |
 | `GET` | `/api/schema` | authenticated | Return the schema metadata safe for the admin UI. |
 
 `:model` is the model's plural admin name, for example `posts` for `Post`.
+
+## Custom actions
+
+Developers configure custom list actions through `admin.register()`. The UI
+only receives actions allowed for the current admin. To run an action, send:
+
+```json
+{ "ids": ["post-1", "post-2"] }
+```
+
+The API accepts 1–100 unique IDs, requires list access plus both configured
+action allowlists, and reloads the selected records under the model's scope
+before calling the handler. If any requested record is unavailable, the action
+does not run. Handlers receive the scoped IDs, authenticated admin, and Prisma
+client, then return `{ "message": "..." }` for the UI.
 
 ## List queries
 

@@ -337,6 +337,28 @@ export class AdminRegistry {
             }
          }
 
+         // Guard: custom actions must have stable, URL-safe names and unique
+         // identifiers. Failing at mount avoids discovering configuration
+         // mistakes only when an administrator clicks an action in production.
+         if (rawConfig.actions) {
+            const actionNames = new Set<string>();
+            for (const action of rawConfig.actions) {
+               if (!/^[a-z][a-z0-9_]*$/.test(action.name)) {
+                  throw new Error(`[prisma-express-admin] admin.register("${modelName}") action name "${action.name}" must use lowercase letters, numbers, and underscores and begin with a letter.`);
+               }
+               if (actionNames.has(action.name)) {
+                  throw new Error(`[prisma-express-admin] admin.register("${modelName}") defines the action "${action.name}" more than once.`);
+               }
+               if (!action.label.trim()) {
+                  throw new Error(`[prisma-express-admin] admin.register("${modelName}") action "${action.name}" must have a label.`);
+               }
+               if (typeof action.handler !== "function") {
+                  throw new Error(`[prisma-express-admin] admin.register("${modelName}") action "${action.name}" must define a handler.`);
+               }
+               actionNames.add(action.name);
+            }
+         }
+
          // ── Apply displayField / pluralName overrides from config ─
          // The developer can override what the introspector auto-detected.
          // We apply these overrides directly onto a copy of the meta here

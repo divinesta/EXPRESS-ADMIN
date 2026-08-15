@@ -1,4 +1,4 @@
-import type { AdminUser, ModelPermissions } from "../core/types.js";
+import type { AdminAction, AdminUser, ModelPermissions } from "../core/types.js";
 
 // ============================================================
 // MODEL PERMISSIONS
@@ -31,4 +31,11 @@ export function hasActionPermission(adminUser: AdminUser, permissions: ModelPerm
    if (allowedRoles === undefined) return true;
 
    return allowedRoles.includes(adminUser.role);
+}
+
+/** An action's own allowlist is additive to the model-level action allowlist. */
+export function hasRegisteredActionPermission(adminUser: AdminUser, permissions: ModelPermissions, action: AdminAction): boolean {
+   if (!hasActionPermission(adminUser, permissions, action.name)) return false;
+   if (adminUser.isSuperAdmin || action.allowedRoles === undefined) return true;
+   return action.allowedRoles.includes(adminUser.role);
 }
