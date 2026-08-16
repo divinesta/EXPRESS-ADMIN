@@ -18,7 +18,7 @@ const adminEmail = process.env.EXAMPLE_ADMIN_EMAIL ?? "ada@example.test";
 const admin = createAdmin({
   prisma,
   databaseProvider: "postgresql",
-  siteName: "Express Admins",
+  siteName: "Express Admin",
   auth: {
     // Development-only identity. Set EXAMPLE_ADMIN_EMAIL to switch tenants.
     // Real applications must resolve this from their session or JWT.
@@ -48,12 +48,14 @@ const admin = createAdmin({
 
 admin.register("User", {
   listDisplay: ["email", "fullName", "role", "isActive"],
+  listFilter: ["role", "isActive"],
   searchFields: ["email", "fullName"],
   scope: async (adminUser) => (adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" }),
 });
 
 admin.register("Post", {
   listDisplay: ["title", "author", "published", "createdAt"],
+  listFilter: ["published", "createdAt"],
   searchFields: ["title", "content"],
   scope: async (adminUser) => (adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" }),
   actions: [

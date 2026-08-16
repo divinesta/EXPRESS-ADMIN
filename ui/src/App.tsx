@@ -4,7 +4,6 @@ import { BrowserRouter, NavLink, Route, Routes, useLocation, useNavigate } from 
 import { FullPageState, NotFound } from "./components/Feedback";
 import { CreateView } from "./pages/CreateView";
 import { Dashboard } from "./pages/Dashboard";
-import { DetailView } from "./pages/DetailView";
 import { ListView } from "./pages/ListView";
 import { useSchema } from "./hooks/useSchema";
 import type { Schema } from "./types";
@@ -40,7 +39,7 @@ const AdminShell = ({ schema }: { schema: Schema }) => {
 
    const backTarget = useMemo(() => {
       if (!activeModel) return null;
-      if (segments[2] === "edit" && segments[1]) return `/${activeModel.meta.pluralName}/${segments[1]}`;
+      if (segments[2] === "edit" && segments[1]) return `/${activeModel.meta.pluralName}`;
       if (segments[1] === "new" || segments[1]) return `/${activeModel.meta.pluralName}`;
       return "/";
    }, [activeModel, segments]);
@@ -110,7 +109,6 @@ const AdminShell = ({ schema }: { schema: Schema }) => {
                   <Route path="/" element={<Dashboard schema={schema} />} />
                   <Route path="/:model/new" element={<CreateView schema={schema} mode="create" />} />
                   <Route path="/:model/:id/edit" element={<CreateView schema={schema} mode="edit" />} />
-                  <Route path="/:model/:id" element={<DetailView schema={schema} />} />
                   <Route path="/:model" element={<ListView schema={schema} />} />
                   <Route path="*" element={<NotFound />} />
                </Routes>

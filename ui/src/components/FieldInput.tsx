@@ -8,6 +8,19 @@ export const FieldInput = ({ field, value, error, relationModel, relationLabel, 
       return <RelationSelect label={`${relationModel.label}${field.isRequired ? " *" : ""}`} model={relationModel} value={String(value)} selectedLabel={relationLabel} error={error} onChange={onChange} />;
    }
 
+   const inputType =
+      field.type === "number"
+         ? "number"
+         : field.type === "datetime"
+           ? "datetime-local"
+           : field.name.toLowerCase().includes("email")
+             ? "email"
+             : field.name.toLowerCase().includes("url")
+               ? "url"
+               : field.name.toLowerCase().includes("password")
+                 ? "password"
+                 : "text";
+
    return (
       <label className={`form-field ${error ? "has-error" : ""}`} htmlFor={id}>
          <span className="form-label">
@@ -31,9 +44,10 @@ export const FieldInput = ({ field, value, error, relationModel, relationLabel, 
          ) : (
             <input
                id={id}
-               type={field.type === "number" ? "number" : field.type === "datetime" ? "datetime-local" : "text"}
+               type={inputType}
                value={String(value)}
                required={field.isRequired}
+               autoComplete={inputType === "email" ? "email" : inputType === "password" ? "new-password" : undefined}
                onChange={(event) => onChange(event.target.value)}
             />
          )}

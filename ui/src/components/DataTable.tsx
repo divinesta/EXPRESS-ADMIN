@@ -6,7 +6,7 @@ export const DataTable = ({
    records,
    fields,
    idField,
-   canView,
+   canEdit,
    rowStart = 0,
    selectedIds,
    sort,
@@ -19,7 +19,7 @@ export const DataTable = ({
    records: RecordData[];
    fields: Field[];
    idField: string;
-   canView: boolean;
+   canEdit: boolean;
    rowStart?: number;
    selectedIds?: Set<string>;
    sort: string;
@@ -54,13 +54,13 @@ export const DataTable = ({
                      </button>
                   </th>
                ))}
-               {canView && <th aria-label="Open record" />}
+               {canEdit && <th aria-label="Edit record" />}
             </tr>
          </thead>
          <tbody>
             {records.length === 0 ? (
                <tr>
-                  <td className="table-empty" colSpan={fields.length + 1 + (canView ? 1 : 0) + (selectable ? 1 : 0)}>
+                  <td className="table-empty" colSpan={fields.length + 1 + (canEdit ? 1 : 0) + (selectable ? 1 : 0)}>
                      No records match your current view.
                   </td>
                </tr>
@@ -68,7 +68,7 @@ export const DataTable = ({
                records.map((record, index) => {
                   const isSelected = selectedIds?.has(String(record[idField]));
                   return (
-                  <tr className={[canView ? "clickable-row" : "", isSelected ? "is-selected" : ""].filter(Boolean).join(" ")} key={String(record[idField])} onClick={() => canView && onOpen(String(record[idField]))}>
+                  <tr className={[canEdit ? "clickable-row" : "", isSelected ? "is-selected" : ""].filter(Boolean).join(" ")} key={String(record[idField])} onClick={() => canEdit && onOpen(String(record[idField]))}>
                      <td className="row-number-cell">{rowStart + index + 1}</td>
                      {selectable && (
                         <td className="selection-cell" onClick={(event) => event.stopPropagation()}>
@@ -80,7 +80,7 @@ export const DataTable = ({
                            {field.type === "boolean" ? <span className="table-boolean">{formatRecordValue(record[field.name], field)}</span> : field.type === "enum" ? <span className="table-enum">{formatRecordValue(record[field.name], field)}</span> : formatRecordValue(record[field.name], field)}
                         </td>
                      ))}
-                     {canView && (
+                     {canEdit && (
                         <td className="row-arrow">
                            <ArrowRight size={16} strokeWidth={1.75} aria-hidden />
                         </td>

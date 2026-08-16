@@ -1,5 +1,6 @@
 import type { AdminModelMeta, ModelConfig, ModelPermissions } from "./types.js";
 import { introspect, type IntrospectOptions } from "./introspector.js";
+import { DELETE_SELECTED_ACTION } from "./defaultActions.js";
 
 // ============================================================
 // DEFAULT RESOLUTION
@@ -35,8 +36,8 @@ const DEFAULT_PER_PAGE = 50;
  * human-readable identifier for the record.
  *
  * ── listFilter ────────────────────────────────────────────────────────────
- * Default: every field the introspector marked as isFilterable.
- * These are: enums, booleans, datetimes, and FK scalar fields.
+ * Default: no filters. Developers opt in with listFilter so list pages only
+ * show the filters that are useful for that model.
  *
  * ── searchFields ──────────────────────────────────────────────────────────
  * Default: every field the introspector marked as isSearchable.
@@ -98,7 +99,7 @@ function resolveConfig(meta: AdminModelMeta, userConfig: ModelConfig): ResolvedM
    }
 
    // ── listFilter ─────────────────────────────────────────────
-   const listFilter = userConfig.listFilter ?? meta.filterableFields;
+   const listFilter = userConfig.listFilter ?? [];
 
    // ── searchFields ───────────────────────────────────────────
    const searchFields = userConfig.searchFields ?? meta.searchableFields;
@@ -329,12 +330,30 @@ export class AdminRegistry {
             }
          }
 
+         // Guard: list filters must be fields the introspector marked as
+         // filterable (enum, boolean, date-time, or foreign-key scalar).
+         if (rawConfig.listFilter) {
+            const filterableFieldNames = new Set(meta.filterableFields);
+            for (const fieldName of rawConfig.listFilter) {
+               if (!filterableFieldNames.has(fieldName)) {
+                  throw new Error(
+                     `[prisma-express-admin] admin.register("${modelName}") config.listFilter: ` +
+                        `field "${fieldName}" cannot be used as a filter. ` +
+                        `Available filter fields: ${[...filterableFieldNames].sort().join(", ") || "none"}.`,
+                  );
+               }
+            }
+         }
+
          // Guard: custom actions must have stable, URL-safe names and unique
          // identifiers. Failing at mount avoids discovering configuration
          // mistakes only when an administrator clicks an action in production.
          if (rawConfig.actions) {
             const actionNames = new Set<string>();
             for (const action of rawConfig.actions) {
+               if (action.name === DELETE_SELECTED_ACTION.name) {
+                  throw new Error(`[prisma-express-admin] admin.register("${modelName}") action name "${action.name}" is reserved for the built-in delete action.`);
+               }
                if (!/^[a-z][a-z0-9_]*$/.test(action.name)) {
                   throw new Error(`[prisma-express-admin] admin.register("${modelName}") action name "${action.name}" must use lowercase letters, numbers, and underscores and begin with a letter.`);
                }

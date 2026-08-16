@@ -259,7 +259,7 @@ export interface ModelConfig {
    /** Which fields to show as columns in the list view */
    listDisplay?: string[];
 
-   /** Which fields to show as filter options */
+   /** Which eligible fields to expose as list filters. Omit for no filters. */
    listFilter?: string[];
 
    /** Which fields are included in the search bar */

@@ -3,420 +3,463 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Express Admin — The schema-driven admin panel for Express + Prisma. Auto-generate CRUD, auth, and operations UI from your Prisma schema.">
-  <title>Express Admin — The admin panel your Express app deserves</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <meta name="description" content="Express Admin is a schema-driven operations panel for Express and Prisma. Register your models and get a guarded admin UI and API from the schema you already have.">
+  <meta name="color-scheme" content="dark">
+  <title>Express Admin - The operations panel for Express and Prisma</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23dbf27c'/><path d='M8 10h16M8 16h12M8 22h8' stroke='%230a0a0b' stroke-width='2.5' stroke-linecap='round'/></svg>">
 </head>
 <body>
   <a href="#main" class="skip-link">Skip to main content</a>
 
-  <!-- Header -->
-  <header class="header" role="banner" aria-label="Site header">
-    <div class="container">
-      <a href="/" class="header-logo" aria-label="Express Admin home">
-        <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <header class="header" role="banner">
+    <div class="container header-inner">
+      <a href="/" class="brand" aria-label="Express Admin home">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
           <rect width="32" height="32" rx="6" fill="#dbf27c"/>
           <path d="M8 10h16M8 16h12M8 22h8" stroke="#0a0a0b" stroke-width="2.5" stroke-linecap="round"/>
         </svg>
         Express Admin
       </a>
 
-      <nav class="header-nav" aria-label="Main navigation">
+      <nav class="header-nav" aria-label="Main">
         <a href="#features">Features</a>
         <a href="#how-it-works">How it works</a>
         <a href="#install">Install</a>
       </nav>
 
       <div class="header-actions">
-        <a href="https://github.com/expressadmin" class="btn btn-ghost btn-github" aria-label="View on GitHub">
+        <a href="https://github.com/expressadmin" class="btn btn-ghost" aria-label="View source on GitHub">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
           </svg>
-          GitHub
+          <span class="btn-label">GitHub</span>
         </a>
         <a href="#install" class="btn btn-primary">Get started</a>
       </div>
     </div>
   </header>
 
-  <!-- Main Content -->
   <main id="main">
-    <!-- Hero -->
     <section class="hero" aria-label="Introduction">
-      <div class="container">
-        <div class="reveal">
-          <span class="hero-badge">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-            </svg>
-            Open source &middot; MIT License
-          </span>
-          <h1>The admin panel your<br>Express app <span>deserves.</span></h1>
-          <p class="hero-subtitle">
-            Point it at your Prisma schema — get a full-featured admin UI with CRUD, auth, and real-time operations. No boilerplate.
-          </p>
-          <div class="hero-ctas">
-            <a href="#install" class="btn btn-primary">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M4 17l6 4 6-4M4 12l6 4 6-4M10 2l6 4-6 4-6-4 6-4z"/>
-              </svg>
-              Get started free
-            </a>
-            <a href="#features" class="btn btn-secondary">See how it works</a>
+      <div class="hero-copy">
+        <h1>The operations panel<br>for Express and Prisma.</h1>
+        <p class="hero-sub">Register your models. Get a guarded admin UI and API from the schema you already have.</p>
+        <div class="hero-ctas">
+          <a href="#install" class="btn btn-primary btn-lg">Get started</a>
+          <a href="https://github.com/expressadmin" class="btn btn-secondary btn-lg">View source</a>
+        </div>
+      </div>
+
+      <div class="product-stage">
+        <div
+          class="slider"
+          role="region"
+          aria-roledescription="carousel"
+          aria-label="Product screenshots"
+          tabindex="0"
+        >
+          <p class="sr-only" id="slide-status" aria-live="polite">Overview</p>
+          <div class="slider-track">
+            <figure class="slide is-active" data-slide data-label="Overview" aria-hidden="false">
+              <img
+                src="images/product-overview.png"
+                width="1912"
+                height="926"
+                alt="Express Admin overview showing registered User and Post models"
+              >
+            </figure>
+            <figure class="slide" data-slide data-label="User list" aria-hidden="true">
+              <img
+                src="images/product-users.png"
+                width="1917"
+                height="929"
+                alt="User list with search, filters, roles, and two operator records"
+              >
+            </figure>
           </div>
         </div>
 
-        <!-- Product Mockup -->
-        <div class="mockup reveal">
-          <div class="mockup-topbar">
-            <span class="mockup-dot"></span>
-            <span class="mockup-dot"></span>
-            <span class="mockup-dot"></span>
+        <div class="slider-bar">
+          <button type="button" class="slider-arrow" data-slider-prev aria-label="Previous screenshot">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+          </button>
+          <div class="slider-dots" aria-label="Choose screenshot">
+            <button type="button" aria-current="true" aria-label="Overview" data-slider-dot="0"></button>
+            <button type="button" aria-current="false" aria-label="User list" data-slider-dot="1"></button>
           </div>
-          <div class="mockup-body">
-            <aside class="mockup-sidebar" aria-hidden="true">
-              <div class="mockup-sidebar-item active">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-                Users
-              </div>
-              <div class="mockup-sidebar-item">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-                Products
-              </div>
-              <div class="mockup-sidebar-item">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                Orders
-              </div>
-              <div class="mockup-sidebar-item">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
-                Analytics
-              </div>
-              <div class="mockup-sidebar-item">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15 1.65 1.65 0 003 14.08V14a2 2 0 014 0v.09c0 .67.41 1.28 1.04 1.51"/></svg>
-                Settings
-              </div>
-            </aside>
-            <div class="mockup-content">
-              <table class="mockup-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Sarah Chen</td>
-                    <td>sarah@company.io</td>
-                    <td>Admin</td>
-                    <td><span class="mockup-badge mockup-badge-green">Active</span></td>
-                  </tr>
-                  <tr>
-                    <td>Marcus Rivera</td>
-                    <td>marcus@company.io</td>
-                    <td>Editor</td>
-                    <td><span class="mockup-badge mockup-badge-green">Active</span></td>
-                  </tr>
-                  <tr>
-                    <td>Aiko Tanaka</td>
-                    <td>aiko@company.io</td>
-                    <td>Viewer</td>
-                    <td><span class="mockup-badge mockup-badge-yellow">Pending</span></td>
-                  </tr>
-                  <tr>
-                    <td>James Okonkwo</td>
-                    <td>james@company.io</td>
-                    <td>Editor</td>
-                    <td><span class="mockup-badge mockup-badge-green">Active</span></td>
-                  </tr>
-                  <tr>
-                    <td>Elena Popov</td>
-                    <td>elena@company.io</td>
-                    <td>Admin</td>
-                    <td><span class="mockup-badge mockup-badge-green">Active</span></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <button type="button" class="slider-arrow" data-slider-next aria-label="Next screenshot">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+          <button type="button" class="slider-toggle" data-slider-toggle aria-pressed="false" aria-label="Pause screenshot rotation">
+            <span data-toggle-label>Pause</span>
+          </button>
         </div>
       </div>
     </section>
 
-    <!-- Tech Strip -->
-    <section class="tech-strip reveal" aria-label="Supported technologies">
+    <section class="stack-section" aria-label="Works with your stack">
       <div class="container">
-        <div class="tech-strip-inner">
-          <span class="tech-strip-item">Express 5</span>
-          <span class="tech-strip-item">Prisma 7</span>
-          <span class="tech-strip-item">PostgreSQL</span>
-          <span class="tech-strip-item">TypeScript</span>
-          <span class="tech-strip-item">Bun / Node</span>
-        </div>
+        <h2>It mounts on the stack you already run.</h2>
+        <p class="lede">Express Admin does not replace your app. You keep Express, Prisma, and your auth. The library reads the schema and serves the panel.</p>
+
+        <ul class="stack-row">
+          <li>
+            <img src="images/express.svg" alt="" width="28" height="28">
+            <strong>Express</strong>
+            <span>admin.mount(app)</span>
+          </li>
+          <li>
+            <img src="images/prisma.svg" alt="" width="28" height="28">
+            <strong>Prisma</strong>
+            <span>schema.prisma</span>
+          </li>
+          <li>
+            <img src="images/postgresql.svg" alt="" width="28" height="28">
+            <strong>PostgreSQL</strong>
+            <span>your database</span>
+          </li>
+          <li>
+            <img src="images/typescript.svg" alt="" width="28" height="28">
+            <strong>TypeScript</strong>
+            <span>typed register()</span>
+          </li>
+          <li>
+            <img src="images/bun.svg" alt="" width="28" height="28">
+            <strong>Bun or Node</strong>
+            <span>Node 20+ / Bun 1.3</span>
+          </li>
+        </ul>
+
+        <ul class="proof-row">
+          <li>No second schema to maintain</li>
+          <li>No built-in login to rip out later</li>
+          <li>Scope applied on every query</li>
+        </ul>
       </div>
     </section>
 
-    <!-- Features -->
     <section class="features" id="features">
-      <div class="container">
-        <div class="reveal">
-          <span class="section-label">Features</span>
-          <h2 class="section-title">Everything you need to<br>manage your data.</h2>
-          <p class="section-subtitle">
-            Drop in Express Admin and get a production-ready operations UI. No weeks of custom dashboard work.
-          </p>
+      <div class="container feature-layout">
+        <div class="feature-intro reveal">
+          <h2>Built from the schema. Guarded by your auth.</h2>
+          <p>You register models. At mount, the library introspects <code>schema.prisma</code> and serves a React admin at <code>/admin</code> plus a JSON API at <code>/admin/api/*</code>.</p>
         </div>
 
-        <div class="features-grid">
-          <article class="feature-card reveal">
-            <div class="feature-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-                <line x1="16" y1="13" x2="8" y2="13"/>
-                <line x1="16" y1="17" x2="8" y2="17"/>
-                <polyline points="10 9 9 9 8 9"/>
-              </svg>
-            </div>
-            <h3>Schema Introspection</h3>
-            <p>Reads your Prisma schema automatically. Models, relations, enums, and field constraints are all detected and mapped to UI components.</p>
-          </article>
-
-          <article class="feature-card reveal">
-            <div class="feature-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                <path d="M7 11V7a5 5 0 0110 0v4"/>
-              </svg>
-            </div>
-            <h3>Auth &amp; Permissions</h3>
-            <p>Built-in role-based access control. Define who can view, create, update, or delete records on each model with simple config.</p>
-          </article>
-
-          <article class="feature-card reveal">
-            <div class="feature-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="16 18 22 12 16 6"/>
-                <polyline points="8 6 2 12 8 18"/>
-              </svg>
-            </div>
-            <h3>Auto CRUD API</h3>
-            <p>Every registered model gets a complete REST API: list, create, read, update, delete with pagination, filtering, and sorting out of the box.</p>
-          </article>
-
-          <article class="feature-card reveal">
-            <div class="feature-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                <line x1="3" y1="9" x2="21" y2="9"/>
-                <line x1="9" y1="21" x2="9" y2="9"/>
-              </svg>
-            </div>
-            <h3>Operations UI</h3>
-            <p>A fully responsive admin interface with search, filters, inline editing, bulk actions, and real-time updates. Ready for your ops team on day one.</p>
-          </article>
-        </div>
+        <ul class="feature-list">
+          <li class="reveal">
+            <h3>Schema is the source of truth</h3>
+            <p><code>admin.register("User")</code> with no extra config still produces a list, search, filters, and a create/edit form.</p>
+          </li>
+          <li class="reveal">
+            <h3>Your identity adapter</h3>
+            <p>There is no bundled login screen. If <code>getCurrentUser</code> returns null, the API is 401. Wire it to the session you already have.</p>
+          </li>
+          <li class="reveal">
+            <h3>Permissions and tenant scope</h3>
+            <p>Role checks decide the verb. <code>scope()</code> decides the rows. Same role does not mean the same records.</p>
+          </li>
+          <li class="reveal">
+            <h3>Operations the team can use today</h3>
+            <p>Search, filters, pagination, relation display fields, and custom actions on selected list records.</p>
+          </li>
+        </ul>
       </div>
     </section>
 
-    <!-- How It Works -->
     <section class="how-it-works" id="how-it-works">
       <div class="container">
-        <div class="reveal">
-          <span class="section-label">How it works</span>
-          <h2 class="section-title">Three steps to your admin panel.</h2>
-          <p class="section-subtitle">
-            From zero to a production admin UI in under five minutes. No code generation, no scaffolding.
-          </p>
+        <div class="reveal how-intro">
+          <h2>Three calls. Everything else is optional.</h2>
         </div>
-
-        <div class="steps">
-          <div class="step reveal">
-            <span class="step-number">1</span>
-            <h3>Point at your Prisma schema</h3>
-            <p>Express Admin reads your existing <code>schema.prisma</code> file. No migration, no config files to write.</p>
-          </div>
-
-          <div class="step reveal">
-            <span class="step-number">2</span>
-            <h3>Register your models</h3>
-            <p>Choose which models to expose. Customize field display, validation rules, and access permissions per model.</p>
-          </div>
-
-          <div class="step reveal">
-            <span class="step-number">3</span>
-            <h3>Mount &amp; ship</h3>
-            <p>Mount the admin router on any path. Your team gets a polished UI and API instantly. Deploy anywhere Express runs.</p>
-          </div>
-        </div>
+        <ol class="calls">
+          <li class="reveal">
+            <span>createAdmin</span>
+            <p>Pass your Prisma client and a <code>getCurrentUser</code> adapter. The library never ships a development backdoor.</p>
+          </li>
+          <li class="reveal">
+            <span>register</span>
+            <p>Choose the models operators may touch. Add list columns, permissions, or actions only when you need them.</p>
+          </li>
+          <li class="reveal">
+            <span>mount</span>
+            <p>Attach the UI and API to your Express app. Deploy wherever that app already runs.</p>
+          </li>
+        </ol>
       </div>
     </section>
 
-    <!-- Code Example -->
     <section class="code-section" id="install">
-      <div class="container">
-        <div class="code-layout">
-          <div class="code-description reveal">
-            <span class="section-label">Quick setup</span>
-            <h2>Up and running in minutes, not days.</h2>
-            <p>Install the package, point it at your Prisma client, and mount it. That's the entire integration.</p>
-            <ul class="code-features-list">
-              <li>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                Works with any existing Express app
-              </li>
-              <li>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                Zero config required — sensible defaults
-              </li>
-              <li>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                Full TypeScript support with autocomplete
-              </li>
-              <li>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                Compatible with Bun and Node.js runtimes
-              </li>
-            </ul>
+      <div class="container code-layout">
+        <div class="code-copy reveal">
+          <h2>Install, register, mount.</h2>
+          <p>Point it at the Prisma client you already generate. Include <code>schema.prisma</code> in the deploy artifact, or pass <code>schemaPath</code>.</p>
+          <ul class="install-notes">
+            <li>Works on Express 4 and 5</li>
+            <li>Prisma and <code>@prisma/client</code> 7.5.x</li>
+            <li>Node 20.19+ or Bun 1.3+</li>
+          </ul>
+        </div>
+
+        <div class="code-panel reveal">
+          <div class="code-panel-header">
+            <span>server.ts</span>
+            <button type="button" class="copy-btn" data-copy aria-label="Copy install snippet">
+              <span data-copy-label>Copy</span>
+            </button>
           </div>
+          <pre class="code-block" id="install-code"><code><span class="tok-k">import</span> express <span class="tok-k">from</span> <span class="tok-s">"express"</span>
+<span class="tok-k">import</span> { createAdmin } <span class="tok-k">from</span> <span class="tok-s">"prisma-express-admin"</span>
+<span class="tok-k">import</span> { prisma } <span class="tok-k">from</span> <span class="tok-s">"./prisma.js"</span>
 
-          <div class="code-panel reveal">
-            <div class="code-panel-header">
-              <span class="code-panel-filename">server.ts</span>
-              <button class="copy-btn" aria-label="Copy code to clipboard" data-copy>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                  <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
-                </svg>
-                <span class="copy-btn-text">Copy</span>
-              </button>
-            </div>
-            <pre class="code-block"><code><span class="token-keyword">import</span> express <span class="token-keyword">from</span> <span class="token-string">'express'</span>
-<span class="token-keyword">import</span> { <span class="token-variable">PrismaClient</span> } <span class="token-keyword">from</span> <span class="token-string">'@prisma/client'</span>
-<span class="token-keyword">import</span> { <span class="token-variable">expressAdmin</span> } <span class="token-keyword">from</span> <span class="token-string">'express-admin'</span>
+<span class="tok-k">const</span> app = express()
 
-<span class="token-keyword">const</span> app <span class="token-punctuation">=</span> <span class="token-function">express</span><span class="token-punctuation">()</span>
-<span class="token-keyword">const</span> prisma <span class="token-punctuation">=</span> <span class="token-keyword">new</span> <span class="token-function">PrismaClient</span><span class="token-punctuation">()</span>
+<span class="tok-k">const</span> admin = createAdmin({
+  prisma,
+  auth: { getCurrentUser },
+})
 
-<span class="token-comment">// Create the admin panel</span>
-<span class="token-keyword">const</span> admin <span class="token-punctuation">=</span> <span class="token-function">expressAdmin</span><span class="token-punctuation">({</span>
-  <span class="token-property">prisma</span><span class="token-punctuation">,</span>
-  <span class="token-property">models</span><span class="token-punctuation">:</span> <span class="token-punctuation">[</span><span class="token-string">'User'</span><span class="token-punctuation">,</span> <span class="token-string">'Post'</span><span class="token-punctuation">,</span> <span class="token-string">'Order'</span><span class="token-punctuation">],</span>
-  <span class="token-property">auth</span><span class="token-punctuation">:</span> <span class="token-punctuation">{</span> <span class="token-property">provider</span><span class="token-punctuation">:</span> <span class="token-string">'session'</span> <span class="token-punctuation">}</span>
-<span class="token-punctuation">})</span>
+admin
+  .register(<span class="tok-s">"User"</span>)
+  .register(<span class="tok-s">"Post"</span>, { listDisplay: [<span class="tok-s">"title"</span>, <span class="tok-s">"published"</span>] })
 
-<span class="token-comment">// Mount on any path</span>
-app<span class="token-punctuation">.</span><span class="token-function">use</span><span class="token-punctuation">(</span><span class="token-string">'/admin'</span><span class="token-punctuation">,</span> admin<span class="token-punctuation">)</span>
+<span class="tok-k">await</span> admin.mount(app)
+app.listen(<span class="tok-n">3000</span>)</code></pre>
+          <textarea class="sr-only" id="install-source" readonly>import express from "express";
+import { createAdmin } from "prisma-express-admin";
+import { prisma } from "./prisma.js";
 
-app<span class="token-punctuation">.</span><span class="token-function">listen</span><span class="token-punctuation">(</span><span class="token-variable">3000</span><span class="token-punctuation">)</span></code></pre>
-          </div>
+const app = express();
+
+const admin = createAdmin({
+  prisma,
+  auth: { getCurrentUser },
+});
+
+admin
+  .register("User")
+  .register("Post", { listDisplay: ["title", "published"] });
+
+await admin.mount(app);
+app.listen(3000);</textarea>
         </div>
       </div>
     </section>
 
-    <!-- CTA Section -->
-    <section class="cta-section">
-      <div class="container">
-        <div class="cta-card reveal">
-          <h2>Give your team a real<br>operations workspace.</h2>
-          <p>Stop building admin panels from scratch. Ship the internal tool your team actually needs — in minutes, not months.</p>
-          <a href="#install" class="btn btn-primary">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M4 17l6 4 6-4M4 12l6 4 6-4M10 2l6 4-6 4-6-4 6-4z"/>
-            </svg>
-            Start building now
-          </a>
+    <section class="close">
+      <div class="container close-inner reveal">
+        <h2>Your operators deserve better than a custom dashboard.</h2>
+        <p>Install it, connect the auth you already have, and let the schema do the rest.</p>
+        <div class="hero-ctas">
+          <a href="#install" class="btn btn-primary btn-lg">Get started</a>
+          <a href="https://github.com/expressadmin" class="btn btn-secondary btn-lg">View source</a>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- Footer -->
   <footer class="footer" role="contentinfo">
-    <div class="container">
-      <div class="footer-inner">
-        <div class="footer-brand">
-          <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
-            <rect width="32" height="32" rx="6" fill="#dbf27c"/>
-            <path d="M8 10h16M8 16h12M8 22h8" stroke="#0a0a0b" stroke-width="2.5" stroke-linecap="round"/>
-          </svg>
-          Express Admin
-        </div>
-        <nav class="footer-links" aria-label="Footer navigation">
-          <a href="https://github.com/expressadmin">GitHub</a>
-          <a href="#features">Features</a>
-          <a href="#install">Documentation</a>
-          <a href="https://github.com/expressadmin/issues">Issues</a>
-        </nav>
-        <p class="footer-copyright">&copy; 2026 Express Admin. MIT License.</p>
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <rect width="32" height="32" rx="6" fill="#dbf27c"/>
+          <path d="M8 10h16M8 16h12M8 22h8" stroke="#0a0a0b" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        <span>Express Admin</span>
+        <small>MIT licensed</small>
       </div>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="https://github.com/expressadmin">GitHub</a>
+        <a href="#features">Features</a>
+        <a href="#install">Install</a>
+        <a href="https://github.com/expressadmin/issues">Issues</a>
+      </nav>
     </div>
   </footer>
 
-  <!-- Scroll Reveal + Header Scroll + Copy Button Script -->
   <script>
     (function () {
-      // Header scroll behavior
-      const header = document.querySelector('.header');
-
-      function onScroll() {
-        if (window.scrollY > 50) {
-          header.classList.add('scrolled');
-        } else {
-          header.classList.remove('scrolled');
-        }
+      document.documentElement.classList.add("js");
+      var header = document.querySelector(".header");
+      var heroCopy = document.querySelector(".hero-copy");
+      if (header && heroCopy && "IntersectionObserver" in window) {
+        new IntersectionObserver(
+          function (entries) {
+            header.classList.toggle("scrolled", !entries[0].isIntersecting);
+          },
+          { threshold: 0, rootMargin: "-64px 0px 0px 0px" }
+        ).observe(heroCopy);
       }
 
-      window.addEventListener('scroll', onScroll, { passive: true });
-      onScroll();
-
-      // Scroll reveal with IntersectionObserver
-      const revealElements = document.querySelectorAll('.reveal');
-
-      if ('IntersectionObserver' in window) {
-        const observer = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
+      var reveals = document.querySelectorAll(".reveal");
+      if ("IntersectionObserver" in window) {
+        var revealObserver = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
               if (entry.isIntersecting) {
-                entry.target.classList.add('revealed');
-                observer.unobserve(entry.target);
+                entry.target.classList.add("revealed");
+                revealObserver.unobserve(entry.target);
               }
             });
           },
-          {
-            threshold: 0.1,
-            rootMargin: '0px 0px -40px 0px',
-          }
+          { threshold: 0.12, rootMargin: "0px 0px -32px 0px" }
         );
-
-        revealElements.forEach((el) => observer.observe(el));
+        reveals.forEach(function (el) { revealObserver.observe(el); });
       } else {
-        // Fallback: show all elements immediately
-        revealElements.forEach((el) => el.classList.add('revealed'));
+        reveals.forEach(function (el) { el.classList.add("revealed"); });
       }
 
-      // Copy button functionality
-      const copyBtn = document.querySelector('[data-copy]');
-      if (copyBtn) {
-        copyBtn.addEventListener('click', function () {
-          const codeBlock = document.querySelector('.code-block code');
-          const text = codeBlock.textContent;
+      if (location.hash) {
+        reveals.forEach(function (el) { el.classList.add("revealed"); });
+      }
 
-          navigator.clipboard.writeText(text).then(() => {
-            copyBtn.classList.add('copied');
-            copyBtn.querySelector('.copy-btn-text').textContent = 'Copied!';
+      var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var slides = Array.prototype.slice.call(document.querySelectorAll("[data-slide]"));
+      var dots = Array.prototype.slice.call(document.querySelectorAll("[data-slider-dot]"));
+      var statusEl = document.getElementById("slide-status");
+      var toggleBtn = document.querySelector("[data-slider-toggle]");
+      var slider = document.querySelector(".slider");
+      var index = 0;
+      var playing = !reduceMotion;
+      var timer = null;
+      var INTERVAL = 6000;
 
-            setTimeout(() => {
-              copyBtn.classList.remove('copied');
-              copyBtn.querySelector('.copy-btn-text').textContent = 'Copy';
-            }, 2000);
-          });
+      function render() {
+        slides.forEach(function (slide, i) {
+          var on = i === index;
+          slide.classList.toggle("is-active", on);
+          slide.setAttribute("aria-hidden", on ? "false" : "true");
+        });
+        dots.forEach(function (dot, i) {
+          dot.setAttribute("aria-current", i === index ? "true" : "false");
+        });
+        if (statusEl && slides[index]) {
+          statusEl.textContent = slides[index].getAttribute("data-label") || "";
+        }
+        if (toggleBtn) {
+          toggleBtn.setAttribute("aria-pressed", playing ? "false" : "true");
+          toggleBtn.setAttribute("aria-label", playing ? "Pause screenshot rotation" : "Play screenshot rotation");
+          var label = toggleBtn.querySelector("[data-toggle-label]");
+          if (label) label.textContent = playing ? "Pause" : "Play";
+        }
+      }
+
+      function go(next) {
+        if (!slides.length) return;
+        index = (next + slides.length) % slides.length;
+        render();
+      }
+
+      function stop() {
+        if (timer) {
+          window.clearInterval(timer);
+          timer = null;
+        }
+      }
+
+      function start() {
+        stop();
+        if (!playing || reduceMotion || slides.length < 2) return;
+        timer = window.setInterval(function () {
+          go(index + 1);
+        }, INTERVAL);
+      }
+
+      var prevBtn = document.querySelector("[data-slider-prev]");
+      var nextBtn = document.querySelector("[data-slider-next]");
+      if (prevBtn) prevBtn.addEventListener("click", function () { go(index - 1); start(); });
+      if (nextBtn) nextBtn.addEventListener("click", function () { go(index + 1); start(); });
+      dots.forEach(function (dot) {
+        dot.addEventListener("click", function () {
+          go(Number(dot.getAttribute("data-slider-dot")));
+          start();
+        });
+      });
+      if (toggleBtn) {
+        toggleBtn.addEventListener("click", function () {
+          playing = !playing;
+          render();
+          if (playing) start();
+          else stop();
+        });
+      }
+      var stage = document.querySelector(".product-stage");
+      if (stage) {
+        stage.addEventListener("mouseenter", stop);
+        stage.addEventListener("mouseleave", start);
+        stage.addEventListener("focusin", stop);
+        stage.addEventListener("focusout", start);
+      }
+      if (slider) {
+        var pointerX = 0;
+        var pointerActive = false;
+        slider.addEventListener("pointerdown", function (event) {
+          if (event.pointerType === "mouse" && event.button !== 0) return;
+          pointerActive = true;
+          pointerX = event.clientX;
+        });
+        slider.addEventListener("pointerup", function (event) {
+          if (!pointerActive) return;
+          pointerActive = false;
+          var dx = event.clientX - pointerX;
+          if (Math.abs(dx) < 48) return;
+          go(index + (dx < 0 ? 1 : -1));
+          start();
+        });
+        slider.addEventListener("pointercancel", function () {
+          pointerActive = false;
+        });
+        slider.addEventListener("keydown", function (event) {
+          if (event.key === "ArrowLeft") {
+            event.preventDefault();
+            go(index - 1);
+            start();
+          }
+          if (event.key === "ArrowRight") {
+            event.preventDefault();
+            go(index + 1);
+            start();
+          }
+        });
+      }
+
+      document.addEventListener("visibilitychange", function () {
+        if (document.hidden) stop();
+        else start();
+      });
+
+      render();
+      start();
+
+      var copyBtn = document.querySelector("[data-copy]");
+      var source = document.getElementById("install-source");
+      if (copyBtn && source) {
+        copyBtn.addEventListener("click", function () {
+          function copied() {
+            var label = copyBtn.querySelector("[data-copy-label]");
+            copyBtn.classList.add("copied");
+            if (label) label.textContent = "Copied";
+            window.setTimeout(function () {
+              copyBtn.classList.remove("copied");
+              if (label) label.textContent = "Copy";
+            }, 1800);
+          }
+
+          function fallbackCopy() {
+            source.focus();
+            source.select();
+            try { document.execCommand("copy"); } catch (err) {}
+          }
+
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(source.value).then(copied).catch(function () {
+              fallbackCopy(source.value);
+              copied();
+            });
+          } else {
+            fallbackCopy(source.value);
+            copied();
+          }
         });
       }
     })();

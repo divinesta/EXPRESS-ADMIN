@@ -2,6 +2,7 @@ import type { RequestHandler } from "express";
 import type { AdminConfig, SchemaResponse } from "../core/types.js";
 import type { AdminRegistry } from "../core/registry.js";
 import { hasModelPermission, hasRegisteredActionPermission } from "../auth/permissions.js";
+import { DELETE_SELECTED_ACTION } from "../core/defaultActions.js";
 import { AuthenticationError, sendApiError } from "./errors.js";
 import { isFieldVisible } from "./validation.js";
 
@@ -43,7 +44,7 @@ import { isFieldVisible } from "./validation.js";
  *       },
  *       "config": {
  *         "listDisplay": ["email", "fullName", "role", "isActive", "createdAt"],
- *         "listFilter": ["role", "isActive", "createdAt", "updatedAt"],
+ *         "listFilter": ["role", "isActive"],
  *         "searchFields": ["email", "fullName"],
  *         "defaultSort": { "field": "createdAt", "direction": "desc" },
  *         "perPage": 50,
@@ -79,6 +80,11 @@ export function createSchemaEndpoint(registry: AdminRegistry, config: AdminConfi
          models: models.map(({ meta, resolved, raw }) => {
             const visibleFields = meta.fields.filter((field) => isFieldVisible(field, raw));
             const visibleFieldNames = new Set(visibleFields.map((field) => field.name));
+            const canDelete = hasModelPermission(adminUser, resolved.permissions, "delete");
+            const customActions = (raw.actions ?? [])
+               .filter((action) => hasRegisteredActionPermission(adminUser, resolved.permissions, action))
+               .map(({ name, label }) => ({ name, label }));
+            const actions = canDelete ? [DELETE_SELECTED_ACTION, ...customActions] : customActions;
 
             return {
                meta: {
@@ -98,12 +104,13 @@ export function createSchemaEndpoint(registry: AdminRegistry, config: AdminConfi
                   view: hasModelPermission(adminUser, resolved.permissions, "view"),
                   create: hasModelPermission(adminUser, resolved.permissions, "create"),
                   update: hasModelPermission(adminUser, resolved.permissions, "update"),
-                  delete: hasModelPermission(adminUser, resolved.permissions, "delete"),
-                  actions: Object.fromEntries((raw.actions ?? []).map((action) => [action.name, hasRegisteredActionPermission(adminUser, resolved.permissions, action)])),
+                  delete: canDelete,
+                  actions: {
+                     [DELETE_SELECTED_ACTION.name]: canDelete,
+                     ...Object.fromEntries((raw.actions ?? []).map((action) => [action.name, hasRegisteredActionPermission(adminUser, resolved.permissions, action)])),
+                  },
                },
-               actions: (raw.actions ?? [])
-                  .filter((action) => hasRegisteredActionPermission(adminUser, resolved.permissions, action))
-                  .map(({ name, label }) => ({ name, label })),
+               actions,
             },
             };
          }),

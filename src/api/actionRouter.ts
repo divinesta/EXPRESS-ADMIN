@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { hasModelPermission, hasRegisteredActionPermission } from "../auth/permissions.js";
+import { DELETE_SELECTED_ACTION } from "../core/defaultActions.js";
 import type { FullRegisteredModel } from "../core/registry.js";
 import type { AdminModelMeta, AuditConfig, PrismaLike } from "../core/types.js";
 import { writeAuditEvent } from "./audit.js";
@@ -10,6 +11,7 @@ import { RequestValidationError } from "./validation.js";
 
 type ActionDelegate = {
    findMany(args: Record<string, unknown>): Promise<Record<string, unknown>[]>;
+   deleteMany(args: Record<string, unknown>): Promise<{ count: number }>;
 };
 
 const MAX_ACTION_RECORDS = 100;
@@ -50,21 +52,43 @@ export function createActionRouter(models: Map<string, FullRegisteredModel>, pri
          }
 
          const actionName = req.params.action;
+         const isDeleteAction = actionName === DELETE_SELECTED_ACTION.name;
          const action = typeof actionName === "string" ? model.raw.actions?.find((candidate) => candidate.name === actionName) : undefined;
-         if (!action || !hasRegisteredActionPermission(adminUser, model.resolved.permissions, action)) {
+         if (isDeleteAction && !hasModelPermission(adminUser, model.resolved.permissions, "delete")) {
+            sendApiError(res, new PermissionDeniedError());
+            return;
+         }
+         if (!isDeleteAction && (!action || !hasRegisteredActionPermission(adminUser, model.resolved.permissions, action))) {
             sendApiError(res, new PermissionDeniedError());
             return;
          }
 
          const requestedIds = parseIds(model.meta, req.body);
          const scope = await resolveScope(model.raw, adminUser);
-         const records = await getDelegate(prisma, model.meta).findMany({
-            where: { AND: [scope, { [model.meta.idField]: { in: requestedIds } }] },
+         const delegate = getDelegate(prisma, model.meta);
+         const where = { AND: [scope, { [model.meta.idField]: { in: requestedIds } }] };
+         const records = await delegate.findMany({
+            where,
             select: { [model.meta.idField]: true },
          });
          const ids = records.map((record) => record[model.meta.idField]).filter((id): id is string | number => typeof id === "string" || typeof id === "number");
          if (ids.length !== requestedIds.length) throw new RequestValidationError("One or more selected records are unavailable.");
 
+         if (isDeleteAction) {
+            for (const id of ids) {
+               if (model.raw.beforeDelete) await model.raw.beforeDelete(String(id));
+            }
+            const result = await delegate.deleteMany({ where });
+            if (result.count !== ids.length) throw new RequestValidationError("One or more selected records are unavailable.");
+            for (const id of ids) {
+               if (model.raw.afterDelete) await model.raw.afterDelete(String(id));
+            }
+            await writeAuditEvent(audit, adminUser, { type: "delete", modelName: model.meta.name, recordIds: ids });
+            res.json({ message: `Deleted ${ids.length} ${ids.length === 1 ? "record" : "records"}.` });
+            return;
+         }
+
+         if (!action) throw new Error(`Action "${String(actionName)}" was not found.`);
          const result = await action.handler({ ids, adminUser, prisma });
          await writeAuditEvent(audit, adminUser, {
             type: "action",

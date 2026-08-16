@@ -39,6 +39,39 @@ const dispatch = (router: Router, body: Record<string, unknown>, action = "publi
    });
 
 describe("custom actions", () => {
+   test("deletes selected records through the built-in, scoped action", async () => {
+      const deletedWhere: unknown[] = [];
+      const beforeDelete: string[] = [];
+      const afterDelete: string[] = [];
+      const auditEvents: Array<{ type: string; recordIds: Array<string | number> }> = [];
+      const model: FullRegisteredModel = {
+         meta: postMeta,
+         raw: {
+            scope: async () => ({ institutionId: "institution-a" }),
+            beforeDelete: async (id) => void beforeDelete.push(id),
+            afterDelete: async (id) => void afterDelete.push(id),
+         },
+         resolved: { listDisplay: ["title"], listFilter: [], searchFields: ["title"], defaultSort: { field: "id", direction: "asc" }, perPage: 25, permissions: {} },
+      };
+      const prisma = {
+         post: {
+            findMany: async () => [{ id: "post-a" }, { id: "post-b" }],
+            deleteMany: async ({ where }: { where: unknown }) => {
+               deletedWhere.push(where);
+               return { count: 2 };
+            },
+         },
+      } as PrismaLike;
+      const router = createActionRouter(new Map([["posts", model]]), prisma, { write: async (event) => { auditEvents.push(event); } });
+
+      const response = await dispatch(router, { ids: ["post-a", "post-b"] }, "delete_selected");
+      expect(response).toEqual({ status: 200, body: { message: "Deleted 2 records." } });
+      expect(beforeDelete).toEqual(["post-a", "post-b"]);
+      expect(afterDelete).toEqual(["post-a", "post-b"]);
+      expect(deletedWhere).toEqual([{ AND: [{ institutionId: "institution-a" }, { id: { in: ["post-a", "post-b"] } }] }]);
+      expect(auditEvents[0]).toMatchObject({ type: "delete", recordIds: ["post-a", "post-b"] });
+   });
+
    test("runs only after every selected record is found inside the model scope", async () => {
       let handlerIds: Array<string | number> = [];
       let actionWhere: unknown;

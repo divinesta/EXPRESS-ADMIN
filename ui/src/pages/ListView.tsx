@@ -46,7 +46,11 @@ export const ListView = ({ schema }: { schema: Schema }) => {
    };
    const runAction = async (action: { name: string; label: string }) => {
       const ids = [...selectedIds];
-      if (!window.confirm(`Run “${action.label}” for ${ids.length} selected ${ids.length === 1 ? "record" : "records"}?`)) return;
+      const message =
+         action.name === "delete_selected"
+            ? `Delete ${ids.length} selected ${ids.length === 1 ? "record" : "records"}? This cannot be undone.`
+            : `Run “${action.label}” for ${ids.length} selected ${ids.length === 1 ? "record" : "records"}?`;
+      if (!window.confirm(message)) return;
       if (await bulkActions.run(action.name, ids)) {
          setSelectedIds(new Set());
          data.refresh();
@@ -79,7 +83,10 @@ export const ListView = ({ schema }: { schema: Schema }) => {
             >
                <Search size={15} strokeWidth={1.75} aria-hidden />
                <input aria-label={`Search ${model.meta.name}`} value={searchDraft} onChange={(event) => setSearchDraft(event.target.value)} placeholder={`Search ${model.meta.name.toLowerCase()}…`} />
-               <button type="submit">Search</button>
+               <button type="submit">
+                  <Search size={14} strokeWidth={2} aria-hidden />
+                  Search
+               </button>
             </form>
             <button className="secondary-button" type="button" onClick={reset}>
                Reset
@@ -122,12 +129,12 @@ export const ListView = ({ schema }: { schema: Schema }) => {
          )}
          {data.status === "ready" && (
             <div className="table-card">
-               <ActionBar actions={model.config.actions} selectedCount={selectedIds.size} busy={bulkActions.status === "running"} onRun={runAction} />
+               {selectedIds.size > 0 && <ActionBar actions={model.config.actions} selectedCount={selectedIds.size} busy={bulkActions.status === "running"} onRun={runAction} />}
                <DataTable
                   records={data.records}
                   fields={listFields}
                   idField={model.meta.idField}
-                  canView={model.config.permissions.view}
+                  canEdit={model.config.permissions.view && model.config.permissions.update}
                   rowStart={(page - 1) * model.config.perPage}
                   selectedIds={model.config.actions.length > 0 ? selectedIds : undefined}
                   sort={sort}
@@ -152,7 +159,7 @@ export const ListView = ({ schema }: { schema: Schema }) => {
                         return next;
                      })
                   }
-                  onOpen={(id) => navigate(`/${model.meta.pluralName}/${id}`)}
+                  onOpen={(id) => navigate(`/${model.meta.pluralName}/${id}/edit`)}
                />
                <div className="table-footer">
                   <span>
