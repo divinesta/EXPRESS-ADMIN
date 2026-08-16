@@ -58,13 +58,16 @@ try {
     ["exec", "--", "prisma", "generate", "--config", "prisma.config.ts", "--schema", "prisma/schema.prisma"],
     consumerDirectory,
   );
-  await access(join(consumerDirectory, "generated", "prisma", "client.js"));
+  // Prisma 7's `prisma-client` generator emits TypeScript (client.ts), not JS.
+  await access(join(consumerDirectory, "generated", "prisma", "client.ts"));
 
   await writeFile(
     join(consumerDirectory, "verify.mjs"),
-    `import assert from "node:assert/strict";\nimport { once } from "node:events";\nimport express from "express";\nimport { PrismaPg } from "@prisma/adapter-pg";\nimport { PrismaClient } from "./generated/prisma/client.js";\nimport { createAdmin } from "prisma-express-admin";\n\nconst prisma = new PrismaClient({\n  adapter: new PrismaPg({ connectionString: "postgresql://postgres:postgres@127.0.0.1:5435/express_admin" }),\n});\nconst app = express();\nconst admin = createAdmin({\n  prisma,\n  databaseProvider: "postgresql",\n  auth: { getCurrentUser: async () => ({ id: "smoke-test", role: "ADMIN" }) },\n});\nadmin.register("User");\nawait admin.mount(app);\nconst server = app.listen(0, "127.0.0.1");\nawait once(server, "listening");\ntry {\n  const address = server.address();\n  assert.ok(address && typeof address !== "string");\n  const response = await fetch(\`http://127.0.0.1:\${address.port}/admin/\`);\n  assert.equal(response.status, 200);\n  assert.match(await response.text(), /<div id="root"><\\/div>/);\n} finally {\n  server.close();\n  await once(server, "close");\n  await prisma.$disconnect();\n}\n`,
+    `import assert from "node:assert/strict";\nimport { once } from "node:events";\nimport express from "express";\nimport { PrismaPg } from "@prisma/adapter-pg";\nimport { PrismaClient } from "./generated/prisma/client.ts";\nimport { createAdmin } from "prisma-express-admin";\n\nconst prisma = new PrismaClient({\n  adapter: new PrismaPg({ connectionString: "postgresql://postgres:postgres@127.0.0.1:5435/express_admin" }),\n});\nconst app = express();\nconst admin = createAdmin({\n  prisma,\n  databaseProvider: "postgresql",\n  auth: { getCurrentUser: async () => ({ id: "smoke-test", role: "ADMIN" }) },\n});\nadmin.register("User");\nawait admin.mount(app);\nconst server = app.listen(0, "127.0.0.1");\nawait once(server, "listening");\ntry {\n  const address = server.address();\n  assert.ok(address && typeof address !== "string");\n  const response = await fetch(\`http://127.0.0.1:\${address.port}/admin/\`);\n  assert.equal(response.status, 200);\n  assert.match(await response.text(), /<div id="root"><\\/div>/);\n} finally {\n  server.close();\n  await once(server, "close");\n  await prisma.$disconnect();\n}\n`,
   );
-  await run("node", ["verify.mjs"], consumerDirectory);
+  // The generated Prisma 7 client is TypeScript with `.ts` imports. Node's type
+  // stripping cannot load it; Bun can, matching examples/basic.
+  await run("bun", ["verify.mjs"], consumerDirectory);
   console.log("Pack smoke test passed: tarball installed and mounted in a fresh Prisma consumer.");
 } finally {
   await rm(temporaryRoot, { recursive: true, force: true });
