@@ -7,7 +7,7 @@ export const Dashboard = ({ schema }: { schema: Schema }) => {
    const visibleModels = schema.models.filter((model) => model.config.permissions.list);
    return (
       <section className="page-section">
-         <div className="eyebrow">{formatDate(new Date())}</div>
+         <div className="eyebrow dashboard-date">{formatDate(new Date())}</div>
          {/* <div className="page-heading">
             <div>
                <h1>Good to see you.</h1>
@@ -51,7 +51,7 @@ export const Dashboard = ({ schema }: { schema: Schema }) => {
                         {model.meta.fields.length} fields · {model.config.permissions.create ? "Can create" : "Read only"}
                      </small>
                   </span>
-                  <ArrowUpRight className="arrow" size={18} strokeWidth={1.75} aria-hidden />
+                  <ArrowUpRight className="arrow" size={20} strokeWidth={1.75} aria-hidden />
                </NavLink>
             ))}
          </div>

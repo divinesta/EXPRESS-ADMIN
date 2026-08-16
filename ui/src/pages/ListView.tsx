@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Plus, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Search, SlidersHorizontal } from "lucide-react";
 import { useMemo, useState } from "react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { ApiNotice, NotFound } from "../components/Feedback";
@@ -86,26 +86,35 @@ export const ListView = ({ schema }: { schema: Schema }) => {
             </button>
          </div>
          {filterFields.length > 0 && (
-            <div className="filter-strip">
-               <span className="filter-caption">Filter by</span>
-               {filterFields.map((field) =>
-                  field.type === "datetime" ? (
-                     <DateRangeControl
-                        field={field}
-                        key={field.name}
-                        from={filters[`${field.name}_gte`] ?? ""}
-                        to={filters[`${field.name}_lte`] ?? ""}
-                        onChange={(key, value) => changeFilter(`${field.name}_${key}`, value)}
-                     />
-                  ) : (
-                     <FilterControl field={field} key={field.name} value={filters[field.name] ?? ""} onChange={(value) => changeFilter(field.name, value)} />
-                  ),
-               )}
+            <div className="filter-strip" aria-label="Filters">
+               <span className="filter-caption">
+                  <SlidersHorizontal size={14} strokeWidth={1.75} aria-hidden />
+                  Filters
+               </span>
+               <div className="filter-controls">
+                  {filterFields.map((field) =>
+                     field.type === "datetime" ? (
+                        <DateRangeControl
+                           field={field}
+                           key={field.name}
+                           from={filters[`${field.name}_gte`] ?? ""}
+                           to={filters[`${field.name}_lte`] ?? ""}
+                           onChange={(key, value) => changeFilter(`${field.name}_${key}`, value)}
+                        />
+                     ) : (
+                        <FilterControl field={field} key={field.name} value={filters[field.name] ?? ""} onChange={(value) => changeFilter(field.name, value)} />
+                     ),
+                  )}
+               </div>
             </div>
          )}
          {data.status === "error" && <ApiNotice message={data.error} />}
          {bulkActions.error && <ApiNotice message={bulkActions.error} />}
-         {bulkActions.message && <div className="action-success" role="status">{bulkActions.message}</div>}
+         {bulkActions.message && (
+            <div className="action-success" role="status">
+               {bulkActions.message}
+            </div>
+         )}
          {data.status === "loading" && (
             <div className="table-card table-state">
                <span className="spinner" /> Loading records…
@@ -119,25 +128,30 @@ export const ListView = ({ schema }: { schema: Schema }) => {
                   fields={listFields}
                   idField={model.meta.idField}
                   canView={model.config.permissions.view}
+                  rowStart={(page - 1) * model.config.perPage}
                   selectedIds={model.config.actions.length > 0 ? selectedIds : undefined}
                   sort={sort}
                   dir={dir}
                   onSort={toggleSort}
-                  onToggleAll={(selected) => setSelectedIds((current) => {
-                     const next = new Set(current);
-                     data.records.forEach((record) => {
-                        const id = String(record[model.meta.idField]);
+                  onToggleAll={(selected) =>
+                     setSelectedIds((current) => {
+                        const next = new Set(current);
+                        data.records.forEach((record) => {
+                           const id = String(record[model.meta.idField]);
+                           if (selected) next.add(id);
+                           else next.delete(id);
+                        });
+                        return next;
+                     })
+                  }
+                  onToggleSelected={(id, selected) =>
+                     setSelectedIds((current) => {
+                        const next = new Set(current);
                         if (selected) next.add(id);
                         else next.delete(id);
-                     });
-                     return next;
-                  })}
-                  onToggleSelected={(id, selected) => setSelectedIds((current) => {
-                     const next = new Set(current);
-                     if (selected) next.add(id);
-                     else next.delete(id);
-                     return next;
-                  })}
+                        return next;
+                     })
+                  }
                   onOpen={(id) => navigate(`/${model.meta.pluralName}/${id}`)}
                />
                <div className="table-footer">

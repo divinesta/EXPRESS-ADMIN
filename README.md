@@ -88,8 +88,19 @@ single-field foreign-key selection for `belongsTo` relations in create/edit
 forms, and permission/scoped custom actions on selected list records. Audit
 logging is available through an optional consumer-provided append-only writer.
 Nested writes, many-to-many editing, and file uploads are not available yet.
-See the [API documentation](docs/api.md) for the complete route and validation
-contract.
+See the [docs site](docs/guide/what-this-is.md) and the
+[HTTP API reference](docs/reference/http-api.md) for the complete route and
+validation contract.
+
+## Documentation
+
+The consumer docs site lives in `docs/` and is built with VitePress.
+
+```bash
+bun run docs:dev
+```
+
+Open the printed localhost URL. Start at **What this is**, then **Quickstart**.
 
 ## Developing this repository
 
@@ -117,6 +128,7 @@ Useful checks:
 bun run typecheck
 bun run test:unit
 bun run build
+bun run docs:dev
 npm pack --dry-run
 ```
 

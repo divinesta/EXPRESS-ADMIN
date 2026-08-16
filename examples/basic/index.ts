@@ -1,7 +1,8 @@
 import express from "express";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "./generated/prisma/client";
-import { createAdmin } from "prisma-express-admin"
+// import { createAdmin } from "prisma-express-admin"
+import { createAdmin } from "../../src/index.ts";
 
 const port = Number(process.env.PORT ?? 3000);
 const databaseUrl = process.env.DATABASE_URL;
@@ -17,7 +18,7 @@ const adminEmail = process.env.EXAMPLE_ADMIN_EMAIL ?? "ada@example.test";
 const admin = createAdmin({
   prisma,
   databaseProvider: "postgresql",
-  siteName: "Express Admin",
+  siteName: "Express Admins",
   auth: {
     // Development-only identity. Set EXAMPLE_ADMIN_EMAIL to switch tenants.
     // Real applications must resolve this from their session or JWT.
@@ -46,10 +47,11 @@ const admin = createAdmin({
 });
 
 admin.register("User", {
-  listDisplay: ["email", "fullName", "role", "isActive", "createdAt"],
+  listDisplay: ["email", "fullName", "role", "isActive"],
   searchFields: ["email", "fullName"],
   scope: async (adminUser) => (adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" }),
 });
+
 admin.register("Post", {
   listDisplay: ["title", "author", "published", "createdAt"],
   searchFields: ["title", "content"],

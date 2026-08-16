@@ -51,6 +51,9 @@
     "example:db:push": "prisma db push --schema examples/basic/prisma/schema.prisma",
     "example:seed": "bun run examples/basic/seed.ts",
     "typecheck": "tsc --noEmit",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
     "landing": "bunx --bun serve landing -l 4173"
   },
   "devDependencies": {
@@ -62,7 +65,8 @@
     "@types/pg": "^8.20.0",
     "pg": "^8.22.0",
     "prisma": "~7.5.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitepress": "^2.0.0-alpha.19"
   },
   "peerDependencies": {
     "@prisma/client": "~7.5.0",
