@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { promisify } from "node:util";
@@ -53,7 +53,12 @@ try {
     join(consumerDirectory, "prisma", "schema.prisma"),
     `generator client {\n  provider = "prisma-client"\n  output   = "../generated/prisma"\n}\n\ndatasource db {\n  provider = "postgresql"\n}\n\nmodel User {\n  id    String @id @default(cuid())\n  email String @unique\n}\n`,
   );
-  await run("npx", ["prisma", "generate"], consumerDirectory);
+  await run(
+    "npm",
+    ["exec", "--", "prisma", "generate", "--config", "prisma.config.ts", "--schema", "prisma/schema.prisma"],
+    consumerDirectory,
+  );
+  await access(join(consumerDirectory, "generated", "prisma", "client.js"));
 
   await writeFile(
     join(consumerDirectory, "verify.mjs"),
