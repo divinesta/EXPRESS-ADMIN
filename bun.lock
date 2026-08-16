@@ -6,6 +6,7 @@
       "name": "express-admin",
       "dependencies": {
         "@prisma/internals": "~7.5.0",
+        "prisma-express-admin": "^0.2.1",
       },
       "devDependencies": {
         "@prisma/adapter-pg": "7.5.0",
@@ -333,6 +334,8 @@
     "postgres-range": ["postgres-range@1.1.4", "", {}, "sha512-i/hbxIE9803Alj/6ytL7UHQxRvZkI9O4Sy+J3HGc4F4oo/2eQAjTSNJ0bfxyse3bH0nuVesCk+3IRLaMtG3H6w=="],
 
     "prisma": ["prisma@7.5.0", "", { "dependencies": { "@prisma/config": "7.5.0", "@prisma/dev": "0.20.0", "@prisma/engines": "7.5.0", "@prisma/studio-core": "0.21.1", "mysql2": "3.15.3", "postgres": "3.4.7" }, "peerDependencies": { "better-sqlite3": ">=9.0.0", "typescript": ">=5.4.0" }, "optionalPeers": ["better-sqlite3", "typescript"], "bin": { "prisma": "build/index.js" } }, "sha512-n30qZpWehaYQzigLjmuPisyEsvOzHt7bZeRyg8gZ5DvJo9FGjD+gNaY59Ns3hlLD5/jZH5GBeftIss0jDbUoLg=="],
+
+    "prisma-express-admin": ["prisma-express-admin@0.2.1", "", { "dependencies": { "@prisma/internals": "~7.5.0" }, "peerDependencies": { "@prisma/client": "~7.5.0", "express": "^4.18.0 || ^5.0.0", "prisma": "~7.5.0" } }, "sha512-2wX7Kk7h0CnBbzNaKqpSHFYU84P2P8GNn8IWSGyJAZp9ULwGFW9oExBm9pdkStSc0r99WifibWZIBTNMYzPriA=="],
 
     "prompts": ["prompts@2.4.2", "", { "dependencies": { "kleur": "^3.0.3", "sisteransi": "^1.0.5" } }, "sha512-NxNv/kLguCA7p3jE8oL2aEBsrJWgAakBpgmgK6lpPWV+WuOmY6r2/zbAVnP+T8bQlA0nzHXSJSJW0Hq7ylaD2Q=="],
 
