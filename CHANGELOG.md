@@ -2,6 +2,31 @@
 
 All notable changes to Prisma Express Admin are documented here.
 
+## 0.3.0 - 16-08-26
+
+### Added
+
+- A built-in **Delete selected** bulk action. It is available to admins with
+  `delete` permission, honours model scope, runs delete hooks, and records an
+  audit event when audit logging is configured.
+- A VitePress documentation site with guides for setup, registration, lists,
+  forms, permissions, relations, scope, hooks, auditing, and the HTTP API.
+- Row numbering, selectable rows, and responsive table/list controls in the
+  admin UI.
+
+### Changed
+
+- List filters are now opt-in. Configure `listFilter` explicitly; omitting it
+  renders no filter controls and rejects filter query parameters for that model.
+- Clicking a list row now opens its edit form directly; the separate record
+  detail page has been removed.
+- Edit controls use native input types where possible, including number,
+  date-time, email, URL, password, boolean, enum, and relation fields.
+- Refined the admin layout, search and filter controls, sidebar, dashboard,
+  tables, forms, typography, and responsive styling.
+- Updated the basic example to use explicit list filters and consume the
+  package through its published entry point.
+
 ## 0.2.0 - 16-08-26
 
 ### Added

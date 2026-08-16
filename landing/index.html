@@ -42,15 +42,24 @@
 
   <main id="main">
     <section class="hero" aria-label="Introduction">
+      <div class="hero-stack-orbit" aria-hidden="true">
+        <span class="stack-token stack-token-express"><img src="images/express.svg" width="46" height="46" alt=""></span>
+        <span class="stack-token stack-token-prisma"><img src="images/prisma.svg" width="46" height="46" alt=""></span>
+        <span class="stack-token stack-token-postgres"><img src="images/postgresql.svg" width="46" height="46" alt=""></span>
+        <span class="stack-token stack-token-typescript"><img src="images/typescript.svg" width="46" height="46" alt=""></span>
+      </div>
+
       <div class="hero-copy">
-        <h1>The operations panel<br>for Express and Prisma.</h1>
-        <p class="hero-sub">Register your models. Get a guarded admin UI and API from the schema you already have.</p>
+        <h1>The control plane<br>for Express and Prisma.</h1>
+        <p class="hero-sub">Register models, keep your auth, and give operators a guarded UI and API from the Prisma schema you already trust.</p>
         <div class="hero-ctas">
           <a href="#install" class="btn btn-primary btn-lg">Get started</a>
           <a href="https://github.com/expressadmin" class="btn btn-secondary btn-lg">View source</a>
         </div>
       </div>
+    </section>
 
+    <section class="product-showcase" aria-label="Product preview">
       <div class="product-stage">
         <div
           class="slider"

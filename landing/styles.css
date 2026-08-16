@@ -47,8 +47,8 @@
 }
 
 :root {
-  --bg: #111113;
-  --bg-deep: #0c0c0e;
+  --bg: #101012;
+  --bg-deep: #09090b;
   --surface: #18181b;
   --text: #f4f4f5;
   --muted: #a1a1aa;
@@ -106,10 +106,10 @@ body::before {
   z-index: var(--z-base);
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
-  background-size: 72px 72px;
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, #000 30%, transparent 80%);
+    linear-gradient(rgba(255, 255, 255, 0.027) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.027) 1px, transparent 1px);
+  background-size: 54px 54px;
+  mask-image: radial-gradient(ellipse 100% 78% at 50% 14%, #000 22%, transparent 82%);
 }
 
 a {
@@ -275,36 +275,38 @@ code {
 
 .hero {
   position: relative;
+  isolation: isolate;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  padding: 8rem 1.25rem 2.5rem;
-}
-
-@media (min-width: 768px) {
-  .hero {
-    padding-top: 10.5rem;
-  }
+  align-items: center;
+  overflow: visible;
+  padding: calc(var(--header) + 6.5rem) 1.25rem 0;
 }
 
 .hero-copy {
+  position: relative;
+  z-index: 2;
   width: 100%;
-  max-width: 820px;
+  max-width: 760px;
   margin: 0 auto;
+  align-self: flex-start;
   text-align: center;
 }
 
 .hero h1 {
-  font-size: clamp(2.35rem, 6.4vw, 4.15rem);
+  font-size: clamp(2.7rem, 6.6vw, 5.15rem);
   font-weight: 700;
-  letter-spacing: -0.055em;
-  line-height: 1.02;
+  letter-spacing: -0.065em;
+  line-height: 0.98;
 }
 
 .hero-sub {
-  margin: 1.15rem auto 0;
-  max-width: 38rem;
+  margin: 1.45rem auto 0;
+  max-width: 42rem;
   color: var(--muted);
-  font-size: 1.05rem;
+  font-size: clamp(1rem, 1.7vw, 1.16rem);
+  line-height: 1.55;
 }
 
 .hero-ctas {
@@ -312,12 +314,85 @@ code {
   justify-content: center;
   flex-wrap: wrap;
   gap: 0.7rem;
-  margin-top: 1.6rem;
+  margin-top: 1.8rem;
 }
 
 .product-stage {
-  width: min(1360px, 100%);
-  margin: 2.75rem auto 0;
+  position: relative;
+  width: min(1360px, calc(100% - 2.5rem));
+  margin: 0 auto;
+}
+
+.product-showcase {
+  position: relative;
+  z-index: 2;
+  margin-top: -9.25rem;
+  padding-bottom: 4.5rem;
+}
+
+.hero-stack-orbit {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100dvh;
+  pointer-events: none;
+}
+
+.stack-token {
+  position: absolute;
+  display: grid;
+  width: 94px;
+  height: 94px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 25px;
+  background: linear-gradient(145deg, rgba(34, 34, 38, 0.94), rgba(16, 16, 18, 0.9));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 20px 40px rgba(0, 0, 0, 0.27);
+}
+
+.stack-token img {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  filter: grayscale(1) brightness(2.2);
+  opacity: 0.88;
+}
+
+.stack-token-express {
+  top: 22%;
+  left: clamp(1.5rem, 7vw, 8rem);
+  transform: rotate(-9deg);
+}
+
+.stack-token-prisma {
+  top: 17%;
+  right: clamp(1.5rem, 7vw, 8rem);
+  transform: rotate(8deg);
+}
+
+.stack-token-postgres {
+  top: 59%;
+  left: clamp(1.25rem, 5vw, 5.5rem);
+  transform: rotate(5deg);
+}
+
+.stack-token-typescript {
+  top: 60%;
+  right: clamp(1.25rem, 5vw, 5.5rem);
+  transform: rotate(-6deg);
+}
+
+@media (max-width: 767px) {
+  .hero-stack-orbit {
+    display: none;
+  }
+
+  .product-showcase {
+    margin-top: -4rem;
+    padding-bottom: 3rem;
+  }
 }
 
 .slider {
