@@ -1,49 +1,82 @@
 # Lists, search, and filters
 
-The list page is a table driven by `register()` plus the schema. The UI does not invent columns.
+These three options live on `admin.register("Model", { ... })` in **your** app. They only change that model’s list page.
 
-## Columns
+A complete User + Post setup is on [Wire it into your app](/guide/in-your-app). This page is the detail for each option.
+
+## `listDisplay` — columns
 
 ```ts
 admin.register("User", {
   listDisplay: ["email", "fullName", "role", "isActive"],
 });
+
+admin.register("Post", {
+  listDisplay: ["title", "author", "published", "createdAt"],
+});
 ```
 
-- Scalar fields render as text, badges, or toggles.
-- A `belongsTo` / `hasOne` name in `listDisplay` (for example `"author"`) loads that relation's **display field** only (`author.email`). It does not load `hasMany` collections such as `posts`.
-- Hidden and sensitive fields are stripped even if you list them.
+What you type is what the table shows, left to right.
 
-## Search
+| Value | What appears |
+| --- | --- |
+| `"email"`, `"title"`, `"published"` | That scalar |
+| `"author"` (a `belongsTo` on Post) | Related User’s display field (`author.email`) |
+| `"posts"` (a `hasMany` on User) | Not loaded — do not use as a column |
+
+Omit `listDisplay` and the library picks the display field, other scalars (up to 6), then `createdAt`.
+
+A name that is not on the model fails at `mount`, not at first click.
+
+## `searchFields` — search box
 
 ```ts
 admin.register("User", {
   searchFields: ["email", "fullName"],
 });
+
+admin.register("Post", {
+  searchFields: ["title", "content"],
+});
 ```
 
-Search becomes a Prisma `OR` of `contains` on those strings. On PostgreSQL, pass `databaseProvider: "postgresql"` so matching is case-insensitive. MySQL and SQLite get `contains` without `mode: "insensitive"` — that option is PostgreSQL-only.
+Only **String** fields. The box on `/admin/users` becomes:
 
-Search is rejected if the model has no searchable string fields. The query is capped at 200 characters.
+```
+WHERE email CONTAINS ? OR fullName CONTAINS ?
+```
 
-## Filters
+| If you… | Result |
+| --- | --- |
+| Omit `searchFields` | All non-id string scalars |
+| Pass a non-string (`"isActive"`) | `mount` throws |
+| Use PostgreSQL | Set `databaseProvider: "postgresql"` on `createAdmin` for case-insensitive match |
+| Type more than 200 characters | `400 VALIDATION_ERROR` |
+
+## `listFilter` — filters
 
 ```ts
+admin.register("User", {
+  listFilter: ["role", "isActive"],
+});
+
 admin.register("Post", {
   listFilter: ["published", "createdAt"],
 });
 ```
 
-Only names in `listFilter` are accepted. Anything else is `400 VALIDATION_ERROR`.
+**Opt-in.** No `listFilter` means no filter UI and no filter query params.
 
-| Field type | Query |
+| Field | Control |
 | --- | --- |
-| boolean, enum, string, number | `?published=true` |
-| date-time range | `?createdAt_gte=2026-01-01T00:00:00.000Z&createdAt_lte=2026-12-31T23:59:59.999Z` |
+| enum (`role`) | Select of enum values |
+| boolean (`isActive`, `published`) | True / false |
+| date-time (`createdAt`) | From / to (`_gte` / `_lte`) |
+| number / string | Exact value |
 
-Scope, filters, and search are combined with Prisma `AND`. A caller cannot filter their way out of a tenant.
+A filter that is not allowed is `400`, not silently ignored. Scope is always `AND`-ed in — Ada cannot filter her way into Contoso.
 
-## Sort and pagination
+## `defaultSort` and `perPage`
 
 ```ts
 admin.register("Post", {
@@ -52,10 +85,31 @@ admin.register("Post", {
 });
 ```
 
-`?sort=` must be a visible scalar. `?dir=` is `asc` or `desc`. `?page=` is a positive integer.
+| Option | Default if omitted |
+| --- | --- |
+| `defaultSort` | `createdAt desc`, else the id |
+| `perPage` | `50` |
 
-Default page size is **50** if you omit `perPage`.
+Operators can still change sort in the table. `?sort=` must be a visible scalar.
 
-## URL name
+## `pluralName`
 
-Lists live at `/admin/{pluralName}`. Override a bad plural with `pluralName`. The API uses the same slug: `/admin/api/posts`.
+```ts
+admin.register("Category", { pluralName: "categories" });
+```
+
+Drives `/admin/categories` and `/admin/api/categories`. The auto plural is usually fine (`User` → `users`).
+
+## Minimal real file
+
+This is enough for a useful User list after [install](/guide/getting-started):
+
+```ts
+admin.register("User", {
+  listDisplay: ["email", "fullName", "role", "isActive"],
+  listFilter: ["role", "isActive"],
+  searchFields: ["email", "fullName"],
+});
+```
+
+Add `scope`, permissions, and actions next on [Wire it into your app](/guide/in-your-app).

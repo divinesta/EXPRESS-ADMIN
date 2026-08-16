@@ -100,7 +100,7 @@ The consumer docs site lives in `docs/` and is built with VitePress.
 bun run docs:dev
 ```
 
-Open the printed localhost URL. Start at **What this is**, then **Quickstart**.
+Open the printed localhost URL. Start at **Getting started**, then **Wire it into your app**.
 
 ## Developing this repository
 

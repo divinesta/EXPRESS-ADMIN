@@ -10,6 +10,7 @@ export default defineConfig({
       logo: "/logo.svg",
       siteTitle: "Prisma Express Admin",
       nav: [
+         { text: "Getting started", link: "/guide/getting-started" },
          { text: "Guide", link: "/guide/what-this-is" },
          { text: "Example", link: "/example/basic" },
          { text: "Reference", link: "/reference/create-admin" },
@@ -20,7 +21,8 @@ export default defineConfig({
             text: "Start",
             items: [
                { text: "What this is", link: "/guide/what-this-is" },
-               { text: "Quickstart", link: "/guide/quickstart" },
+               { text: "Getting started", link: "/guide/getting-started" },
+               { text: "Wire it into your app", link: "/guide/in-your-app" },
                { text: "How it works", link: "/guide/how-it-works" },
             ],
          },

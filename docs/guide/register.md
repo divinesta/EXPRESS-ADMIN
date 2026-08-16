@@ -18,13 +18,15 @@ The first argument is the Prisma model name, **PascalCase, exact**. The second a
 | Display label | First unique string among `name`, `title`, `label`, `username`, `slug`, `email`; else any unique string; else first string; else the id |
 | List columns | Display field first, then other non-id scalars, up to 6, then `createdAt` if present |
 | Search | Non-id string scalars (not FK scalars) |
-| Filters | Enums, booleans, date-times, and FK scalars |
+| Filters | None — configure `listFilter` explicitly |
 | Sort | `createdAt` descending, or the id |
 | Page size | 50 |
 | Permissions | Any authenticated admin |
 | URL slug | Simple English plural (`User` → `users`, `Category` → `categories`) |
 
 Reach for the second argument when those defaults are wrong — not before.
+
+The step-by-step for putting this in your server file is [Wire it into your app](/guide/in-your-app). That page walks through the same `register()` object as the published example.
 
 ## What you can customize
 
@@ -57,6 +59,7 @@ These throw with the available names so a typo does not become a silent empty co
 - Model does not exist in `schema.prisma`
 - `listDisplay` / `fields` / `displayField` names that are not on the model
 - `searchFields` that are not strings
+- `listFilter` fields that are not filterable
 - `register()` after `mount()`
 - `mount()` twice
 

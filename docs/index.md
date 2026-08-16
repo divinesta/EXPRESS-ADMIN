@@ -7,11 +7,11 @@ hero:
   tagline: A Django-style admin panel for Express and Prisma. You already wrote the data model — this library turns it into a guarded operations UI.
   actions:
     - theme: brand
-      text: Quickstart
-      link: /guide/quickstart
+      text: Getting started
+      link: /guide/getting-started
     - theme: alt
-      text: How it works
-      link: /guide/how-it-works
+      text: Wire it into your app
+      link: /guide/in-your-app
 
 features:
   - title: Schema-driven

@@ -55,3 +55,8 @@ The [basic example](/example/basic) seeds two companies and three operators. The
 | Linus Torvalds | `SUPER_ADMIN` | Northwind | Both, because `scope` returns `{}` |
 
 Same role does not mean same rows. That distinction — **permissions vs scope** — is the point of this library.
+
+## Next
+
+1. [Getting started](/guide/getting-started) — install `prisma-express-admin` and mount
+2. [Wire it into your app](/guide/in-your-app) — `listDisplay`, `searchFields`, `listFilter`, `scope`

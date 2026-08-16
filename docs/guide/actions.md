@@ -1,6 +1,8 @@
-# Custom actions
+# List actions
 
-List actions are bulk verbs on selected rows. The example uses them to publish and unpublish posts.
+List actions are bulk verbs on selected rows. Every list has a built-in **Delete selected** action when the current admin has `delete` permission. It is the default action, honours `scope`, runs the model's delete hooks, and writes a `delete` audit event.
+
+You can add custom actions for other operations, such as publishing posts:
 
 ```ts
 admin.register("Post", {
@@ -54,6 +56,8 @@ Ada cannot publish Grace’s draft by pasting its id into the request.
 You can also set `permissions.actions.publish_selected`. Both are enforced when present.
 
 The schema endpoint only lists actions this person may run. Hidden in the UI is not the boundary — the POST is.
+
+The built-in delete action uses the model's `delete` permission; it cannot be changed through `permissions.actions`.
 
 ## Do the work yourself
 

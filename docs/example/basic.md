@@ -2,6 +2,8 @@
 
 `examples/basic/` is the dogfood app in this repository. It is not the library. It is the story the Trust guides keep pointing at.
 
+To copy the same `createAdmin` / `register` options into **your** server, follow [Wire it into your app](/guide/in-your-app).
+
 ## What is in it
 
 Prisma models: `User`, `Post`, `Tenant`, `AdminAuditLog`.
@@ -67,6 +69,7 @@ const admin = createAdmin({
 
 admin.register("User", {
   listDisplay: ["email", "fullName", "role", "isActive"],
+  listFilter: ["role", "isActive"],
   searchFields: ["email", "fullName"],
   scope: async (adminUser) =>
     adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" },
@@ -74,6 +77,7 @@ admin.register("User", {
 
 admin.register("Post", {
   listDisplay: ["title", "author", "published", "createdAt"],
+  listFilter: ["published", "createdAt"],
   searchFields: ["title", "content"],
   scope: async (adminUser) =>
     adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" },

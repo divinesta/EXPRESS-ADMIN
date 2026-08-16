@@ -58,7 +58,7 @@ Be explicit on every operation you care about. Partial objects are not “deny t
 }
 ```
 
-The sidebar hides models without `list`. The delete button hides without `delete`. The API still enforces the same check — hiding a button is not the security boundary.
+The sidebar hides models without `list`. The built-in **Delete selected** list action is hidden without `delete`. The API still enforces the same check — hiding a control is not the security boundary.
 
 ## Custom actions
 

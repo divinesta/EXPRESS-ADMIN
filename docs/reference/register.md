@@ -14,7 +14,7 @@ Chainable. Call only before `mount()`.
 | Key | Type | Default |
 | --- | --- | --- |
 | `listDisplay` | `string[]` | Display field + scalars (max 6) + `createdAt` |
-| `listFilter` | `string[]` | Enums, booleans, datetimes, FK scalars |
+| `listFilter` | `string[]` | `[]` (opt-in) |
 | `searchFields` | `string[]` | Non-id string scalars |
 | `defaultSort` | `{ field, direction }` | `createdAt desc` or id desc |
 | `perPage` | `number` | `50` |
