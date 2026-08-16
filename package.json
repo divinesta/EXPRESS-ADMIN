@@ -2,6 +2,7 @@
   "name": "prisma-express-admin",
   "version": "0.1.0",
   "description": "A Django-admin-like tool for Express + Prisma",
+  "license": "MIT",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "type": "module",
@@ -29,7 +30,8 @@
     "dist",
     "ui/dist",
     "README.md",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "LICENSE"
   ],
   "engines": {
     "node": "^20.19 || ^22.12 || >=24.0",

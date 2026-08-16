@@ -82,14 +82,13 @@ It should show:
 Add integration coverage for an attempted cross-tenant record ID, especially
 for relation selection and custom actions.
 
-## 4. Complete package metadata before publishing
+## 4. Final package metadata review before publishing
 
 **Roadmap item:** Phase 1B — Package metadata.
 
-The remaining decision is the project license. Choose it deliberately with the
-repository owner, then add the corresponding `LICENSE` file and update the
-`license` field in `package.json`. Re-run `npm pack --dry-run` afterwards to
-confirm the license is included in the published package.
+The package identity is now `@divinesta/prisma-express-admin` and the project
+uses the MIT license. Before publishing, re-run `npm pack --dry-run` to confirm
+the `LICENSE` file is included in the published package.
 
 Also review the package name, description, repository URL, and version just
 before the first publish. Do not publish until those values represent the
@@ -100,5 +99,4 @@ intended public package.
 1. Verify the basic example in a clean local environment.
 2. Build audit logging.
 3. Add the multi-tenant example and cross-tenant tests.
-4. Choose the license and perform final release checks.
-
+4. Perform final release checks and publish.
