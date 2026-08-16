@@ -1,6 +1,6 @@
 {
   "name": "prisma-express-admin",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A Django-admin-like tool for Express + Prisma",
   "license": "MIT",
   "main": "./dist/index.js",

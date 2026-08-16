@@ -2,7 +2,20 @@
 
 All notable changes to Prisma Express Admin are documented here.
 
-## 0.1.0 - Unreleased
+## 0.2.0 - 16-08-26
+
+### Added
+
+- Optional append-only audit logging through `createAdmin({ audit: { write } })`.
+  Events cover successful creates, updates, deletes, and custom actions while
+  omitting changed field values and sensitive data.
+- A Prisma-backed `AdminAuditLog` writer in the basic example.
+- A multi-tenant basic example with Northwind and Contoso, tenant-scoped Users
+  and Posts, and switchable development identities.
+- Tenant boundaries applied to CRUD, relation selection, and custom actions in
+  the example through model `scope()` configuration.
+
+## 0.1.0
 
 ### Compatibility
 
