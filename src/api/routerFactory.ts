@@ -1,6 +1,7 @@
 import { Router } from "express";
 import type { FullRegisteredModel } from "../core/registry.js";
-import type { AdminModelMeta, PrismaLike } from "../core/types.js";
+import type { AdminModelMeta, AuditConfig, PrismaLike } from "../core/types.js";
+import { writeAuditEvent } from "./audit.js";
 import { RecordNotFoundError, sendApiError } from "./errors.js";
 import { buildListWhere, parseListQuery } from "./listQuery.js";
 import { assertSelectedRelationsAreVisible, buildRecordSelect } from "./recordSelection.js";
@@ -28,7 +29,7 @@ function getDelegate(prisma: PrismaLike, meta: AdminModelMeta): PrismaModelDeleg
  * Create scalar CRUD routes for registered models. Query parsing, record
  * selection, relation safety, and route plumbing live in focused modules.
  */
-export function createCrudRouter(models: Map<string, FullRegisteredModel>, prisma: PrismaLike, databaseProvider?: string): Router {
+export function createCrudRouter(models: Map<string, FullRegisteredModel>, prisma: PrismaLike, databaseProvider?: string, audit?: AuditConfig): Router {
    const router = Router();
 
    router.get("/:model", route(async (req, res) => {
@@ -84,6 +85,12 @@ export function createCrudRouter(models: Map<string, FullRegisteredModel>, prism
 
       const record = await getDelegate(prisma, model.meta).create({ data, select: buildRecordSelect(model.meta, model) });
       if (model.raw.afterCreate) await model.raw.afterCreate(record);
+      const recordId = record[model.meta.idField];
+      await writeAuditEvent(audit, adminUser, {
+         type: "create",
+         modelName: model.meta.name,
+         recordIds: typeof recordId === "string" || typeof recordId === "number" ? [recordId] : [],
+      });
       res.status(201).json(record);
    }));
 
@@ -111,6 +118,7 @@ export function createCrudRouter(models: Map<string, FullRegisteredModel>, prism
       const record = await delegate.findFirst({ where, select: buildRecordSelect(model.meta, model) });
       if (!record) throw new Error(`[prisma-express-admin] Updated record "${model.meta.name}/${id}" could not be reloaded.`);
       if (model.raw.afterUpdate) await model.raw.afterUpdate(record);
+      await writeAuditEvent(audit, adminUser, { type: "update", modelName: model.meta.name, recordIds: [id] });
       res.json(record);
    }));
 
@@ -138,6 +146,7 @@ export function createCrudRouter(models: Map<string, FullRegisteredModel>, prism
       }
 
       if (model.raw.afterDelete) await model.raw.afterDelete(String(id));
+      await writeAuditEvent(audit, adminUser, { type: "delete", modelName: model.meta.name, recordIds: [id] });
       res.status(204).end();
    }));
 

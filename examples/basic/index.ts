@@ -12,30 +12,48 @@ if (!databaseUrl) {
 
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: databaseUrl }) });
 const app = express();
+const adminEmail = process.env.EXAMPLE_ADMIN_EMAIL ?? "ada@example.test";
 
 const admin = createAdmin({
   prisma,
   databaseProvider: "postgresql",
   siteName: "Express Admin",
   auth: {
-    // Development-only identity. Replace this with your host application's
-    // session or JWT adapter before using the admin outside local development.
-    getCurrentUser: async () => ({
-      id: "local-development-admin",
-      email: "admin@localhost.test",
-      role: "SUPER_ADMIN",
-      isSuperAdmin: true,
-    }),
+    // Development-only identity. Set EXAMPLE_ADMIN_EMAIL to switch tenants.
+    // Real applications must resolve this from their session or JWT.
+    getCurrentUser: async () => {
+      const user = await prisma.user.findUnique({ where: { email: adminEmail } });
+      if (!user) return null;
+      return { id: user.id, email: user.email, role: user.role, isSuperAdmin: user.role === "SUPER_ADMIN", tenantId: user.tenantId };
+    },
+  },
+  audit: {
+    write: async (event) => {
+      await prisma.adminAuditLog.create({
+        data: {
+          eventType: event.type,
+          modelName: event.modelName,
+          recordIds: event.recordIds.map(String),
+          actorId: event.actor.id,
+          actorEmail: event.actor.email,
+          actorRole: event.actor.role,
+          metadata: event.metadata,
+          createdAt: event.timestamp,
+        },
+      });
+    },
   },
 });
 
 admin.register("User", {
   listDisplay: ["email", "fullName", "role", "isActive", "createdAt"],
   searchFields: ["email", "fullName"],
+  scope: async (adminUser) => (adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" }),
 });
 admin.register("Post", {
   listDisplay: ["title", "author", "published", "createdAt"],
   searchFields: ["title", "content"],
+  scope: async (adminUser) => (adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" }),
   actions: [
     {
       name: "publish_selected",

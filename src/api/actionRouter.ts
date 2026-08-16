@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { hasModelPermission, hasRegisteredActionPermission } from "../auth/permissions.js";
 import type { FullRegisteredModel } from "../core/registry.js";
-import type { AdminModelMeta, PrismaLike } from "../core/types.js";
+import type { AdminModelMeta, AuditConfig, PrismaLike } from "../core/types.js";
+import { writeAuditEvent } from "./audit.js";
 import { PermissionDeniedError, sendApiError } from "./errors.js";
 import { getAdminUser, getRegisteredModel, parseRecordId, route } from "./routeSupport.js";
 import { resolveScope } from "./scope.js";
@@ -35,7 +36,7 @@ function parseIds(meta: AdminModelMeta, body: unknown): Array<string | number> {
 }
 
 /** Create scoped, permission-aware routes for registered list-view actions. */
-export function createActionRouter(models: Map<string, FullRegisteredModel>, prisma: PrismaLike): Router {
+export function createActionRouter(models: Map<string, FullRegisteredModel>, prisma: PrismaLike, audit?: AuditConfig): Router {
    const router = Router();
 
    router.post("/:model/actions/:action", route(async (req, res) => {
@@ -65,6 +66,12 @@ export function createActionRouter(models: Map<string, FullRegisteredModel>, pri
          if (ids.length !== requestedIds.length) throw new RequestValidationError("One or more selected records are unavailable.");
 
          const result = await action.handler({ ids, adminUser, prisma });
+         await writeAuditEvent(audit, adminUser, {
+            type: "action",
+            modelName: model.meta.name,
+            recordIds: ids,
+            metadata: { action: action.name },
+         });
          res.json(result);
    }));
 

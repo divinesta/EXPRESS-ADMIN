@@ -86,9 +86,10 @@ This MVP provides authenticated, permission-aware, tenant-scoped scalar CRUD,
 search, filters, pagination, relation display fields in lists, safe
 single-field foreign-key selection for `belongsTo` relations in create/edit
 forms, and permission/scoped custom actions on selected list records. Audit
-logging, nested writes, many-to-many editing, and file uploads are not
-available yet. See the [API documentation](docs/api.md) for the complete route
-and validation contract.
+logging is available through an optional consumer-provided append-only writer.
+Nested writes, many-to-many editing, and file uploads are not available yet.
+See the [API documentation](docs/api.md) for the complete route and validation
+contract.
 
 ## Developing this repository
 

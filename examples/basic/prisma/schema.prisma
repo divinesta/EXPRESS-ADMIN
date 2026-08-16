@@ -19,6 +19,8 @@ model User {
   fullName  String
   role      Role     @default(USER)
   isActive  Boolean  @default(true)
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   posts     Post[]
@@ -31,6 +33,28 @@ model Post {
   published Boolean  @default(false)
   authorId  String
   author    User     @relation(fields: [authorId], references: [id])
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  users     User[]
+  posts     Post[]
+  createdAt DateTime @default(now())
+}
+
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  eventType  String
+  modelName  String
+  recordIds  String[]
+  actorId    String
+  actorEmail String
+  actorRole  String
+  metadata   Json?
+  createdAt  DateTime @default(now())
 }

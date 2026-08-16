@@ -18,9 +18,34 @@ bun run example:seed
 bun run dev
 ```
 
-Open `http://localhost:3000/admin`. The seeded users and posts make it easy to
-exercise list, search, filter, detail, create, edit, and delete flows.
+Open `http://localhost:3000/admin`. The seeded tenants, users, and posts make
+it easy to exercise list, search, filter, detail, create, edit, delete,
+relation selection, custom actions, and audit logging.
 
-The host intentionally uses a local super-admin identity. It is only for this
-example; real applications must implement `auth.getCurrentUser` from their own
-authentication system.
+## Try the tenant boundaries
+
+The host reads `EXAMPLE_ADMIN_EMAIL` to select a development identity. Restart
+the host with one of these values after seeding:
+
+```bash
+EXAMPLE_ADMIN_EMAIL=ada@example.test bun run dev
+EXAMPLE_ADMIN_EMAIL=grace@example.test bun run dev
+EXAMPLE_ADMIN_EMAIL=linus@example.test bun run dev
+```
+
+- Ada is a Northwind admin and sees only Northwind users and posts.
+- Grace is a Contoso admin and sees only Contoso users and posts.
+- Linus is a super-admin and sees both tenants.
+
+The server applies this boundary through each registered model's `scope()`;
+changing a request in the browser cannot bypass it. Creating a Post assigns the
+current tenant automatically, relation choices are limited to that tenant, and
+custom actions are rechecked under the same scope.
+
+Every successful create, update, delete, or custom action writes an
+append-only `AdminAuditLog` record. The example intentionally does not expose
+that log as an admin model, so it remains an operational record rather than a
+user-editable resource.
+
+These identities are development-only. Real applications must implement
+`auth.getCurrentUser` from their own authentication system.

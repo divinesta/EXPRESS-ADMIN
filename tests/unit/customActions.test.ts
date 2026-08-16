@@ -42,6 +42,7 @@ describe("custom actions", () => {
    test("runs only after every selected record is found inside the model scope", async () => {
       let handlerIds: Array<string | number> = [];
       let actionWhere: unknown;
+      const auditEvents: Array<{ type: string; modelName: string; recordIds: Array<string | number>; metadata?: Record<string, unknown> }> = [];
       const model: FullRegisteredModel = {
          meta: postMeta,
          raw: {
@@ -68,12 +69,14 @@ describe("custom actions", () => {
             },
          },
       } as PrismaLike;
-      const router = createActionRouter(new Map([["posts", model]]), prisma);
+      const router = createActionRouter(new Map([["posts", model]]), prisma, { write: async (event) => { auditEvents.push(event); } });
 
       const response = await dispatch(router, { ids: ["post-a", "post-b"] });
       expect(response).toEqual({ status: 200, body: { message: "Published 2 posts." } });
       expect(handlerIds).toEqual(["post-a", "post-b"]);
       expect(actionWhere).toEqual({ AND: [{ institutionId: "institution-a" }, { id: { in: ["post-a", "post-b"] } }] });
+      expect(auditEvents).toHaveLength(1);
+      expect(auditEvents[0]).toMatchObject({ type: "action", modelName: "Post", recordIds: ["post-a", "post-b"], metadata: { action: "publish_selected" } });
    });
 
    test("does not execute when a selected record falls outside scope", async () => {

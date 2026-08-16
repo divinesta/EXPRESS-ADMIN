@@ -97,8 +97,8 @@ export function createAdmin(config: AdminConfig): Admin {
          // Scalar CRUD routes. Each route enforces authentication, model
          // permissions, tenant scope, and request validation before Prisma.
          const modelsByPluralName = new Map(registry.getAll().map((model) => [model.meta.pluralName, model]));
-         router.use("/api", createActionRouter(modelsByPluralName, config.prisma));
-         router.use("/api", createCrudRouter(modelsByPluralName, config.prisma, config.databaseProvider));
+         router.use("/api", createActionRouter(modelsByPluralName, config.prisma, config.audit));
+         router.use("/api", createCrudRouter(modelsByPluralName, config.prisma, config.databaseProvider, config.audit));
          router.use("/api", createApiErrorHandler());
 
          // The UI is a pre-built Vite SPA. Keep this after /api so API routes
@@ -131,6 +131,8 @@ export type {
    ModelConfig,
    AdminUser,
    AuthConfig,
+   AuditConfig,
+   AdminAuditEvent,
    AdminFieldMeta,
    AdminModelMeta,
    AdminFieldType,

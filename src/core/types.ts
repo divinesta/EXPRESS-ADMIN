@@ -345,6 +345,9 @@ export interface AdminUser {
     */
    institutionId?: string;
 
+   /** Optional tenant identifier for applications that scope records by tenant. */
+   tenantId?: string;
+
    /** Arbitrary extra data you want available in scope/hooks */
    metadata?: Record<string, unknown>;
 }
@@ -365,6 +368,25 @@ export interface AuthConfig {
     */
    getCurrentUser: (req: Request) => Promise<AdminUser | null>;
 
+}
+
+/** A safe, append-only description of an admin mutation. */
+export interface AdminAuditEvent {
+   type: "create" | "update" | "delete" | "action";
+   modelName: string;
+   recordIds: Array<string | number>;
+   actor: Pick<AdminUser, "id" | "email" | "role">;
+   timestamp: Date;
+   /** Safe context only, such as an action name. Never include field values or secrets. */
+   metadata?: Record<string, string | number | boolean | null>;
+}
+
+/**
+ * Consumer-owned audit destination. The library creates events but does not
+ * impose a database table or logging provider on the host application.
+ */
+export interface AuditConfig {
+   write(event: AdminAuditEvent): Promise<void>;
 }
 
 // ============================================================
@@ -393,6 +415,9 @@ export interface AdminConfig {
 
    /** How to authenticate admin users */
    auth: AuthConfig;
+
+   /** Optional append-only writer called after successful admin mutations. */
+   audit?: AuditConfig;
 
    /**
     * The name shown in the admin UI header.

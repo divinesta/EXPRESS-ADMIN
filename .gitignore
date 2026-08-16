@@ -40,4 +40,4 @@ ui/vite.config.d.ts
 /generated/prisma
 /examples/basic/generated/prisma
 
-LIBRARY_PACKAGING_ROADMAP.md
+# LIBRARY_PACKAGING_ROADMAP.md

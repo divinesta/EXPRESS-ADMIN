@@ -45,6 +45,19 @@ before calling the handler. If any requested record is unavailable, the action
 does not run. Handlers receive the scoped IDs, authenticated admin, and Prisma
 client, then return `{ "message": "..." }` for the UI.
 
+## Audit logging
+
+Pass `audit.write` to `createAdmin()` to receive an append-only event after a
+successful create, update, delete, or custom action. Events include the actor,
+event type, model name, record IDs, timestamp, and safe metadata such as a
+custom action name. The library never sends changed values, passwords, tokens,
+or other field data to the writer.
+
+The consuming application owns persistence and retention. For example, the
+basic example writes each event to its `AdminAuditLog` Prisma model. If the
+configured writer rejects, the API reports the failure rather than falsely
+claiming that an audit event was stored.
+
 ## List queries
 
 The list endpoint accepts only these general parameters:

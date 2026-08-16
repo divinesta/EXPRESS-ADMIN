@@ -65,6 +65,7 @@ describe("belongsTo relation selection", () => {
    test("accepts an FK only when the related record is inside its scoped view", async () => {
       let createCalls = 0;
       let relatedWhere: unknown;
+      const auditEvents: Array<{ type: string; modelName: string; recordIds: Array<string | number> }> = [];
       const prisma = {
          user: {
             findFirst: async (args: { where: unknown }) => {
@@ -79,12 +80,19 @@ describe("belongsTo relation selection", () => {
             },
          },
       } as PrismaLike;
-      const router = createCrudRouter(new Map([["posts", model(postMeta)], ["users", model(userMeta, async () => ({ institutionId: "institution-a" }))]]), prisma);
+      const router = createCrudRouter(
+         new Map([["posts", model(postMeta)], ["users", model(userMeta, async () => ({ institutionId: "institution-a" }))]]),
+         prisma,
+         undefined,
+         { write: async (event) => { auditEvents.push(event); } },
+      );
 
       const permitted = await dispatch(router, { title: "Visible relation", authorId: "visible-user" });
       expect(permitted.status).toBe(201);
       expect(createCalls).toBe(1);
       expect(relatedWhere).toEqual({ AND: [{ institutionId: "institution-a" }, { id: "visible-user" }] });
+      expect(auditEvents).toHaveLength(1);
+      expect(auditEvents[0]).toMatchObject({ type: "create", modelName: "Post", recordIds: ["new-post"] });
 
       const forbidden = await dispatch(router, { title: "Forged relation", authorId: "other-tenant-user" });
       expect(forbidden.status).toBe(400);
