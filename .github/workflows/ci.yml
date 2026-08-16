@@ -54,5 +54,5 @@ jobs:
           bun run typecheck
           bun run build
           bun test
-      - name: Verify publish contents
-        run: npm pack --dry-run
+      - name: Verify tarball installation and mount
+        run: bun run test:pack
