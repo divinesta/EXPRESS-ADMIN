@@ -13,7 +13,7 @@
   "bugs": {
     "url": "https://github.com/divinesta/EXPRESS-ADMIN/issues"
   },
-  "homepage": "https://github.com/divinesta/EXPRESS-ADMIN#readme",
+  "homepage": "https://express-admin-chi.vercel.app",
   "keywords": [
     "express",
     "prisma",
