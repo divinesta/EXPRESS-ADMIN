@@ -1,9 +1,9 @@
 import { Router } from "express";
-import type { NextFunction, Request, Response } from "express";
 import { hasModelPermission, hasRegisteredActionPermission } from "../auth/permissions.js";
 import type { FullRegisteredModel } from "../core/registry.js";
 import type { AdminModelMeta, PrismaLike } from "../core/types.js";
-import { AdminApiError, AuthenticationError, ModelNotFoundError, PermissionDeniedError, sendApiError } from "./errors.js";
+import { PermissionDeniedError, sendApiError } from "./errors.js";
+import { getAdminUser, getRegisteredModel, parseRecordId, route } from "./routeSupport.js";
 import { resolveScope } from "./scope.js";
 import { RequestValidationError } from "./validation.js";
 
@@ -25,45 +25,24 @@ function parseIds(meta: AdminModelMeta, body: unknown): Array<string | number> {
    if (!Array.isArray(ids) || ids.length === 0) throw new RequestValidationError("Action requests require at least one record ID.");
    if (ids.length > MAX_ACTION_RECORDS) throw new RequestValidationError(`Actions can target at most ${MAX_ACTION_RECORDS} records at once.`);
 
-   const idField = meta.fields.find((field) => field.name === meta.idField);
    const parsed = ids.map((raw) => {
       if (typeof raw !== "string" && typeof raw !== "number") throw new RequestValidationError("Every action record ID must be a string or number.");
-      if (idField?.type !== "number") return String(raw);
-      const id = Number(raw);
-      if (!Number.isInteger(id)) throw new RequestValidationError(`Record ID for "${meta.name}" must be an integer.`);
-      return id;
+      return parseRecordId(meta, String(raw));
    });
 
    if (new Set(parsed).size !== parsed.length) throw new RequestValidationError("Action record IDs must be unique.");
    return parsed;
 }
 
-function sendRouteError(error: unknown, res: Response, next: NextFunction): void {
-   if (error instanceof AdminApiError) {
-      sendApiError(res, error);
-      return;
-   }
-   next(error);
-}
-
 /** Create scoped, permission-aware routes for registered list-view actions. */
 export function createActionRouter(models: Map<string, FullRegisteredModel>, prisma: PrismaLike): Router {
    const router = Router();
 
-   router.post("/:model/actions/:action", (req, res, next) => {
-      void (async () => {
-         const adminUser = req.adminUser;
-         if (!adminUser) {
-            sendApiError(res, new AuthenticationError());
-            return;
-         }
-
-         const modelName = req.params.model;
-         const model = typeof modelName === "string" ? models.get(modelName) : undefined;
-         if (!model) {
-            sendApiError(res, new ModelNotFoundError());
-            return;
-         }
+   router.post("/:model/actions/:action", route(async (req, res) => {
+         const adminUser = getAdminUser(req, res);
+         if (!adminUser) return;
+         const model = getRegisteredModel(req, res, models);
+         if (!model) return;
          if (!hasModelPermission(adminUser, model.resolved.permissions, "list")) {
             sendApiError(res, new PermissionDeniedError());
             return;
@@ -87,8 +66,7 @@ export function createActionRouter(models: Map<string, FullRegisteredModel>, pri
 
          const result = await action.handler({ ids, adminUser, prisma });
          res.json(result);
-      })().catch((error: unknown) => sendRouteError(error, res, next));
-   });
+   }));
 
    return router;
 }

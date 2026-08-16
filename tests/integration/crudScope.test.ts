@@ -25,7 +25,6 @@ async function createPostRouter(prisma: PrismaClient): Promise<Router> {
          searchFields: ["title"],
          defaultSort: { field: "createdAt", direction: "desc" },
          perPage: 25,
-         fieldsets: [],
          permissions,
       },
    };

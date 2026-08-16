@@ -20,7 +20,7 @@ import { isFieldVisible } from "./validation.js";
  *   - Which models exist and what they're called
  *   - Which columns to show in each list view
  *   - Which fields can be filtered or searched
- *   - The sort order, page size, fieldsets, permissions
+ *   - The sort order, page size, permissions, and allowed actions
  *
  * It's also the best debugging tool during development.
  * Hit GET /admin/api/schema in a browser and you'll see exactly
@@ -47,7 +47,6 @@ import { isFieldVisible } from "./validation.js";
  *         "searchFields": ["email", "fullName"],
  *         "defaultSort": { "field": "createdAt", "direction": "desc" },
  *         "perPage": 50,
- *         "fieldsets": [],
  *         "permissions": {}
  *       }
  *     }
@@ -94,10 +93,6 @@ export function createSchemaEndpoint(registry: AdminRegistry, config: AdminConfi
                   searchFields: resolved.searchFields.filter((fieldName) => visibleFieldNames.has(fieldName)),
                defaultSort: resolved.defaultSort,
                perPage: resolved.perPage,
-                  fieldsets: resolved.fieldsets.map((fieldset) => ({
-                     ...fieldset,
-                     fields: fieldset.fields.filter((fieldName) => visibleFieldNames.has(fieldName)),
-                  })),
                permissions: {
                   list: hasModelPermission(adminUser, resolved.permissions, "list"),
                   view: hasModelPermission(adminUser, resolved.permissions, "view"),

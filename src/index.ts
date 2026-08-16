@@ -136,14 +136,10 @@ export type {
    AdminFieldType,
    RelationKind,
    ModelPermissions,
-   AdminFieldset,
    AdminAction,
-   AdminInlineConfig,
    AdminFieldOverride,
    PaginatedResponse,
    SchemaResponse,
-   AuditLogEntry,
-   AdminPlugin,
    PrismaLike,
 } from "./core/types.js";
 export type { ResolvedModelConfig, FullRegisteredModel } from "./core/registry.js";

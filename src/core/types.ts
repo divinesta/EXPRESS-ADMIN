@@ -1,4 +1,4 @@
-import type { Request, Response, NextFunction } from "express";
+import type { Request } from "express";
 
 /**
  * The admin operates on Prisma model delegates selected at runtime from DMMF
@@ -214,37 +214,6 @@ export interface AdminAction {
 }
 
 /**
- * Fieldset — groups fields visually in the create/edit form.
- * Like Django's fieldsets. Optional but useful for complex models.
- *
- * e.g. { label: "Personal Info", fields: ["firstName", "lastName", "email"] }
- */
-export interface AdminFieldset {
-   label: string;
-   fields: string[];
-   /** If true, this section is collapsed by default in the UI */
-   collapsed?: boolean;
-}
-
-/**
- * Inline config — shows a related hasMany model as a sub-table
- * inside the parent model's edit form.
- * Like Django's TabularInline.
- *
- * e.g. On the User detail page, show their Posts inline.
- */
-export interface AdminInlineConfig {
-   /** The related model to show inline. e.g. "Post" */
-   model: string;
-
-   /** The FK field on the related model that points to this model. e.g. "authorId" */
-   foreignKey: string;
-
-   /** Which fields to show in the inline table */
-   fields?: string[];
-}
-
-/**
  * Per-field overrides — lets developers customize how individual
  * fields behave in the admin, without changing the Prisma schema.
  */
@@ -258,20 +227,8 @@ export interface AdminFieldOverride {
     */
    expose?: boolean;
 
-   /** Override the display label for this field */
-   label?: string;
-
-   /**
-    * Override the widget used to render this field.
-    * e.g. "richtext", "url", "email", "password", "json", "file"
-    */
-   widget?: string;
-
    /** If true, field is shown but cannot be edited */
    readOnly?: boolean;
-
-   /** Help text shown below the input in the UI */
-   helpText?: string;
 }
 
 /**
@@ -315,13 +272,7 @@ export interface ModelConfig {
    perPage?: number;
 
    // ── Detail / Form view ─────────────────────────────────────
-   /** Group fields into named sections in the edit form */
-   fieldsets?: AdminFieldset[];
-
-   /** Inline related models shown inside the edit form */
-   inlines?: AdminInlineConfig[];
-
-   /** Per-field overrides (exclude, custom widget, readOnly, etc.) */
+   /** Per-field visibility and read-only overrides. */
    fields?: Record<string, AdminFieldOverride>;
 
    // ── Behaviour ──────────────────────────────────────────────
@@ -370,20 +321,6 @@ export interface ModelConfig {
 }
 
 // ============================================================
-// REGISTERED MODEL (internal — combines meta + config)
-// ============================================================
-
-/**
- * What gets stored in the registry after admin.register() is called.
- * Combines the auto-generated metadata (from DMMF) with the
- * developer's custom configuration.
- */
-export interface RegisteredModel {
-   meta: AdminModelMeta;
-   config: ModelConfig;
-}
-
-// ============================================================
 // AUTH
 // ============================================================
 
@@ -428,11 +365,6 @@ export interface AuthConfig {
     */
    getCurrentUser: (req: Request) => Promise<AdminUser | null>;
 
-   /**
-    * Optional: the path to redirect to for login.
-    * Default: "/admin/login"
-    */
-   loginPath?: string;
 }
 
 // ============================================================
@@ -477,37 +409,6 @@ export interface AdminConfig {
 }
 
 // ============================================================
-// AUDIT LOG
-// ============================================================
-
-/**
- * A single audit log entry — records every admin action.
- * Who did what, to which record, and what changed.
- */
-export interface AuditLogEntry {
-   id: string;
-   timestamp: Date;
-   adminUserId: string;
-   adminEmail: string;
-   action: "CREATE" | "UPDATE" | "DELETE" | "ACTION" | "LOGIN" | "EXPORT";
-   modelName: string;
-   recordId: string;
-
-   /**
-    * For UPDATE actions — the field-level diff.
-    * What the value was before and after the change.
-    */
-   changes?: Array<{
-      field: string;
-      oldValue: unknown;
-      newValue: unknown;
-   }>;
-
-   /** Extra context — e.g. action name for ACTION, format for EXPORT */
-   metadata?: Record<string, unknown>;
-}
-
-// ============================================================
 // EXPRESS REQUEST AUGMENTATION
 // ============================================================
 
@@ -524,31 +425,6 @@ declare global {
          adminUser?: AdminUser;
       }
    }
-}
-
-// ============================================================
-// PLUGIN API (stub — fully designed in v1 even if shipped in v2)
-// ============================================================
-
-/**
- * A plugin can extend the admin with custom widgets, routes, or middleware.
- * Design the interface now so the router factory has the right hooks from day 1.
- */
-export interface AdminPlugin {
-   name: string;
-
-   /**
-    * Custom widget registrations.
-    * Maps a widget name (used in AdminFieldOverride.widget) to
-    * a React component name string. The UI looks this up at render time.
-    */
-   widgets?: Record<string, string>;
-
-   /**
-    * Additional Express middleware to add to the admin router.
-    * Runs after auth, before route handlers.
-    */
-   middleware?: Array<(req: Request, res: Response, next: NextFunction) => void>;
 }
 
 // ============================================================
@@ -589,7 +465,6 @@ export interface SchemaResponse {
          searchFields: string[];
          defaultSort: { field: string; direction: "asc" | "desc" };
          perPage: number;
-         fieldsets: AdminFieldset[];
          /** Effective permissions for this admin, ready for UI decisions. */
          permissions: {
             list: boolean;

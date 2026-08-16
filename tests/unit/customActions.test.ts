@@ -58,7 +58,7 @@ describe("custom actions", () => {
                },
             ],
          },
-         resolved: { listDisplay: ["title"], listFilter: [], searchFields: ["title"], defaultSort: { field: "id", direction: "asc" }, perPage: 25, fieldsets: [], permissions: {} },
+         resolved: { listDisplay: ["title"], listFilter: [], searchFields: ["title"], defaultSort: { field: "id", direction: "asc" }, perPage: 25, permissions: {} },
       };
       const prisma = {
          post: {
@@ -81,7 +81,7 @@ describe("custom actions", () => {
       const model: FullRegisteredModel = {
          meta: postMeta,
          raw: { actions: [{ name: "publish_selected", label: "Publish selected posts", handler: async () => { executions += 1; return { message: "Unexpected" }; } }] },
-         resolved: { listDisplay: ["title"], listFilter: [], searchFields: ["title"], defaultSort: { field: "id", direction: "asc" }, perPage: 25, fieldsets: [], permissions: {} },
+         resolved: { listDisplay: ["title"], listFilter: [], searchFields: ["title"], defaultSort: { field: "id", direction: "asc" }, perPage: 25, permissions: {} },
       };
       const prisma = { post: { findMany: async () => [{ id: "post-a" }] } } as PrismaLike;
       const router = createActionRouter(new Map([["posts", model]]), prisma);

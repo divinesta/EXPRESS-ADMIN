@@ -1,4 +1,4 @@
-import type { AdminModelMeta, ModelConfig, RegisteredModel, AdminFieldset, ModelPermissions } from "./types.js";
+import type { AdminModelMeta, ModelConfig, ModelPermissions } from "./types.js";
 import { introspect, type IntrospectOptions } from "./introspector.js";
 
 // ============================================================
@@ -49,9 +49,6 @@ const DEFAULT_PER_PAGE = 50;
  *
  * ── perPage ───────────────────────────────────────────────────────────────
  * Default: 25. The developer can override this per model.
- *
- * ── fieldsets ─────────────────────────────────────────────────────────────
- * Default: no fieldsets (empty array = flat form, all fields in one block).
  *
  * ── permissions ───────────────────────────────────────────────────────────
  * Default: empty permissions object = any authenticated admin can do anything.
@@ -120,9 +117,6 @@ function resolveConfig(meta: AdminModelMeta, userConfig: ModelConfig): ResolvedM
    // ── perPage ────────────────────────────────────────────────
    const perPage = userConfig.perPage ?? DEFAULT_PER_PAGE;
 
-   // ── fieldsets ─────────────────────────────────────────────
-   const fieldsets: AdminFieldset[] = userConfig.fieldsets ?? [];
-
    // ── permissions ────────────────────────────────────────────
    const permissions: ModelPermissions = userConfig.permissions ?? {};
 
@@ -132,7 +126,6 @@ function resolveConfig(meta: AdminModelMeta, userConfig: ModelConfig): ResolvedM
       searchFields,
       defaultSort,
       perPage,
-      fieldsets,
       permissions,
    };
 }
@@ -155,7 +148,6 @@ export interface ResolvedModelConfig {
    searchFields: string[];
    defaultSort: { field: string; direction: "asc" | "desc" };
    perPage: number;
-   fieldsets: AdminFieldset[];
    permissions: ModelPermissions;
 }
 
