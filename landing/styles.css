@@ -349,6 +349,17 @@ html[data-theme="light"] .theme-icon-moon {
   min-height: 40px;
 }
 
+.btn-sponsor {
+  color: var(--accent);
+  min-width: 40px;
+  padding: 0.5rem 0.75rem;
+}
+
+.sponsor-heart {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
 .btn-label {
   display: none;
 }
@@ -881,7 +892,8 @@ html[data-theme="light"] .stack-token img {
 @media (hover: hover) and (pointer: fine) {
   .header-nav a:hover,
   .footer-links a:hover,
-  .btn-ghost:hover {
+  .btn-ghost:hover,
+  .btn-sponsor:hover {
     color: var(--text);
   }
 
@@ -899,6 +911,12 @@ html[data-theme="light"] .stack-token img {
   .slider-arrow:hover,
   .theme-toggle:hover {
     color: var(--text);
+  }
+}
+
+@media (max-width: 479px) {
+  .btn-github {
+    display: none;
   }
 }
 
