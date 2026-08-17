@@ -54,7 +54,7 @@
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
-    "build:site": "mkdir -p site && cp -R landing/. site/ && bunx vitepress build docs",
+    "build:site": "mkdir -p .vercel/output/static && echo '{\"version\":3}' > .vercel/output/config.json && cp -R landing/. .vercel/output/static/ && bunx vitepress build docs",
     "landing": "bunx --bun serve landing -l 4173"
   },
   "devDependencies": {
