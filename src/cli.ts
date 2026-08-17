@@ -60,6 +60,11 @@ const question = async (label: string): Promise<string> => {
    }
 };
 
+const confirm = async (label: string): Promise<boolean> => {
+   const answer = (await question(`${label} [y/N]: `)).toLowerCase();
+   return answer === "y" || answer === "yes";
+};
+
 const hiddenQuestion = async (label: string): Promise<string> => {
    if (!stdin.isTTY) throw new Error("Password input requires a terminal. Pass --password or set EXPRESS_ADMIN_PASSWORD for non-interactive use.");
    stdout.write(label);
@@ -121,7 +126,12 @@ const createSuperuser = async (): Promise<void> => {
          if (password !== confirmation) throw new Error("Passwords do not match.");
       }
       if (!identifier || identifier.length > 254) throw new Error(`A valid ${identifierName} is required.`);
-      if (password.length < 12) throw new Error("Password must be at least 12 characters long.");
+      if (!password) throw new Error("Password cannot be empty.");
+      if (password.length < 12) {
+         const warning = "This password is shorter than the recommended 12 characters. Continue anyway?";
+         if (suppliedPassword) console.warn(`Warning: ${warning}`);
+         else if (!(await confirm(warning))) throw new Error("Superuser creation cancelled.");
+      }
 
       const delegate = (config.prisma as Record<string, unknown>)[modelKey(config.auth.userModel ?? "ExpressAdminUser")] as { create(args: unknown): Promise<unknown> } | undefined;
       if (!delegate) throw new Error(`Prisma client has no delegate for ${config.auth.userModel ?? "ExpressAdminUser"}. Generate your Prisma client after adding the auth schema.`);

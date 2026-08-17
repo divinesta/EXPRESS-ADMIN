@@ -184,7 +184,9 @@ export const createBuiltInAuthenticationMiddleware = (prisma: PrismaLike, config
 };
 
 export const enforceBuiltInAdminPage = (prisma: PrismaLike, config: BuiltInAuthConfig, basePath: string): RequestHandler => async (req, res, next) => {
-   if (req.path === "/login" || req.path.startsWith("/api/")) {
+   // The SPA's JavaScript and CSS must load before React can render /login.
+   // Guard pages and APIs, not the static bundle that powers them.
+   if (req.path === "/login" || req.path.startsWith("/api/") || req.path.startsWith("/assets/")) {
       next();
       return;
    }
