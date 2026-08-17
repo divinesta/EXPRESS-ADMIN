@@ -32,6 +32,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 *.tsbuildinfo
 docs/.vitepress/cache
 docs/.vitepress/dist
+landing/docs
 ui/vite.config.js
 ui/vite.config.d.ts
 
