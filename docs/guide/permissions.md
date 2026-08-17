@@ -56,7 +56,7 @@ admin.register("User", {
 });
 ```
 
-The field remains visible but is read-only for other roles. The API enforces this too.
+The field remains visible in lists but is excluded from edit forms for other roles. The API enforces this too.
 
 ## How the UI uses this
 

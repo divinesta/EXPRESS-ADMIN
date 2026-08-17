@@ -9,7 +9,7 @@ import { useSchema } from "./hooks/useSchema";
 import { ThemeProvider, ThemeSettings } from "./components/ThemeProvider";
 import { LoginPage } from "./pages/LoginPage";
 import type { Schema } from "./types";
-import { adminBasePath } from "./config";
+import { adminBasePath, joinAdminPath } from "./config";
 
 export const App = () => {
    const isLoginRoute = window.location.pathname.endsWith("/login");
@@ -106,9 +106,9 @@ const AdminShell = ({ schema }: { schema: Schema }) => {
                </div>
                <div className="topbar-right">
                   <ThemeSettings email={schema.identity.email} role={schema.identity.role} canLogout={schema.authMode === "built-in"} onLogout={async () => {
-                     const response = await fetch(`${schema.basePath}/api/auth/logout`, { method: "POST", credentials: "include" });
+                     const response = await fetch(joinAdminPath(schema.basePath, "/api/auth/logout"), { method: "POST", credentials: "include" });
                      if (!response.ok) throw new Error("Unable to sign out. Please try again.");
-                     window.location.assign(`${schema.basePath}/login`);
+                     window.location.assign(joinAdminPath(schema.basePath, "/login"));
                   }} />
                </div>
             </header>

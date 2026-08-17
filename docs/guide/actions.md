@@ -51,7 +51,7 @@ Ada cannot publish Grace’s draft by pasting its id into the request.
 
 ## Permissions
 
-`allowedRoles` on the action is the usual allowlist. Super-admin bypasses it. Omitting `allowedRoles` means any authenticated admin who can list the model.
+`allowedRoles` on the action is the usual allowlist. Super-admin bypasses it. An action must define `allowedRoles`, `permissions.actions[name]`, or both; omitting both denies the action.
 
 You can also set `permissions.actions.publish_selected`. Both are enforced when present.
 

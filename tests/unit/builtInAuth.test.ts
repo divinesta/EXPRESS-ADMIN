@@ -135,6 +135,26 @@ describe("built-in admin authentication", () => {
       expect(limited.headers.get("retry-after")).not.toBeNull();
    });
 
+   test("throttles an IP even when identifiers rotate", async () => {
+      const app = express();
+      app.use(express.json());
+      app.use("/api/auth", createBuiltInAuthRouter({
+         expressAdminUser: { findUnique: async () => null },
+         expressAdminSession: { create: async () => null, findFirst: async () => null, deleteMany: async () => ({ count: 0 }) },
+      }, { ...config, loginRateLimit: { maxAttempts: 2, windowMs: 60_000 } }));
+      const server = app.listen(0, "127.0.0.1");
+      servers.push(server);
+      await once(server, "listening");
+      const address = server.address();
+      if (!address || typeof address === "string") throw new Error("Server did not bind a TCP port.");
+      const url = `http://127.0.0.1:${address.port}/api/auth/login`;
+      const request = (identifier: string) => fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ identifier, password: "a long password for testing" }) });
+
+      expect((await request("first@example.test")).status).toBe(401);
+      expect((await request("second@example.test")).status).toBe(401);
+      expect((await request("third@example.test")).status).toBe(429);
+   });
+
    test("refuses to expose built-in authentication models", async () => {
       const admin = createAdmin({ prisma: {} as never, schemaPath: "examples/basic/prisma/schema.prisma", auth: config });
       admin.register("ExpressAdminUser");

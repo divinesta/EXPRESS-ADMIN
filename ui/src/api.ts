@@ -1,7 +1,7 @@
 import type { RecordData, Schema } from "./types";
-import { adminBasePath } from "./config";
+import { adminBasePath, joinAdminPath } from "./config";
 
-export const apiBase = `${adminBasePath}/api`;
+export const apiBase = joinAdminPath(adminBasePath, "/api");
 
 export const readApiError = async (response: Response): Promise<string> => {
   try {

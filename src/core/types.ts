@@ -209,7 +209,7 @@ export interface AdminAction {
     */
    handler: (params: { ids: Array<string | number>; adminUser: AdminUser; prisma: PrismaLike }) => Promise<{ message: string }>;
 
-   /** Which roles can run this action. If omitted, any admin can run it. */
+   /** Which roles can run this action. Either this or permissions.actions[name] is required. */
    allowedRoles?: string[];
 }
 

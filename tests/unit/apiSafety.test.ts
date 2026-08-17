@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { hasModelPermission } from "../../src/auth/permissions.ts";
+import { hasModelPermission, hasRegisteredActionPermission } from "../../src/auth/permissions.ts";
 import { buildScopedRecordWhere, resolveScope } from "../../src/api/scope.ts";
 import { RequestValidationError, isFieldWritable, validateWritePayload } from "../../src/api/validation.ts";
 import type { AdminModelMeta, AdminUser, ModelConfig } from "../../src/core/types.ts";
@@ -67,5 +67,12 @@ describe("API safety foundation", () => {
       expect(isFieldWritable(role, config, adminUser)).toBe(false);
       expect(isFieldWritable(role, config, { ...adminUser, role: "SUPER_ADMIN", isSuperAdmin: true })).toBe(true);
       expect(() => validateWritePayload(userMeta, config, adminUser, { role: "ADMIN" })).toThrow(RequestValidationError);
+   });
+
+   test("accepts either explicit custom action allowlist", () => {
+      const action = { name: "publish", label: "Publish", allowedRoles: ["ADMIN"], handler: async () => ({ message: "Published" }) };
+      expect(hasRegisteredActionPermission(adminUser, {}, action)).toBe(true);
+      expect(hasRegisteredActionPermission(adminUser, { actions: { publish: ["ADMIN"] } }, { ...action, allowedRoles: undefined })).toBe(true);
+      expect(hasRegisteredActionPermission(adminUser, { actions: { publish: ["SUPER_ADMIN"] } }, action)).toBe(false);
    });
 });

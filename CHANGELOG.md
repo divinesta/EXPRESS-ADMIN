@@ -16,11 +16,17 @@ All notable changes to Prisma Express Admin are documented here.
 - Unknown login identifiers now run a dummy password verification, reducing
   account-enumeration timing differences.
 - Added per-process login throttling, enabled by default.
+- Login throttling now enforces a per-IP cap as well as per-identifier limits,
+  and bounds in-memory tracking to prevent unbounded growth.
 
 ### Changed
 
 - Built-in auth cookies, login routes, redirects, API requests, and the UI
   router now honor any configured `basePath`.
+- Root-mounted admin paths now resolve to normal same-origin URLs rather than
+  protocol-relative URLs.
+- A custom action may use either `allowedRoles` or `permissions.actions`; when
+  both are configured, both must allow the role.
 - The built-in login and logout flow has expanded coverage for rejected roles,
   inactive accounts, cookie settings, logout, throttling, and custom paths.
 

@@ -1,10 +1,10 @@
 import { Eye, EyeOff, KeyRound, ShieldCheck } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
-import { adminBasePath } from "../config";
+import { adminBasePath, joinAdminPath } from "../config";
 
 type Identifier = "email" | "username";
 
-const authUrl = `${adminBasePath}/api/auth`;
+const authUrl = joinAdminPath(adminBasePath, "/api/auth");
 
 export const LoginPage = () => {
    const [identifierType, setIdentifierType] = useState<Identifier | null>(null);
@@ -42,7 +42,7 @@ export const LoginPage = () => {
             const body = await response.json().catch(() => null) as { error?: string } | null;
             throw new Error(body?.error ?? "Unable to sign in.");
          }
-         window.location.assign(`${adminBasePath}/`);
+         window.location.assign(joinAdminPath(adminBasePath, "/"));
       } catch (reason) {
          setError(reason instanceof Error ? reason.message : "Unable to sign in.");
       } finally {

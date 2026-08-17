@@ -79,7 +79,7 @@ export function createSchemaEndpoint(registry: AdminRegistry, config: AdminConfi
          authMode: isBuiltInAuth(config.auth) ? "built-in" : "external",
          siteName,
          basePath,
-         models: models.map(({ meta, resolved, raw }) => {
+         models: models.filter(({ resolved }) => hasModelPermission(adminUser, resolved.permissions, "list")).map(({ meta, resolved, raw }) => {
             const visibleFields = meta.fields
                .filter((field) => isFieldVisible(field, raw))
                .map((field) => ({ ...field, isReadOnly: field.isReadOnly || !isFieldWritable(field, raw, adminUser) }));

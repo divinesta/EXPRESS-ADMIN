@@ -23,7 +23,7 @@ export function hasModelPermission(adminUser: AdminUser, permissions: ModelPermi
    return allowedRoles.includes(adminUser.role);
 }
 
-/** Return the role allowlist for a named custom action. */
+/** Return the configured model-level role allowlist for a named custom action. */
 export function hasActionPermission(adminUser: AdminUser, permissions: ModelPermissions, actionName: string): boolean {
    if (adminUser.isSuperAdmin) return true;
 
@@ -33,9 +33,13 @@ export function hasActionPermission(adminUser: AdminUser, permissions: ModelPerm
    return allowedRoles.includes(adminUser.role);
 }
 
-/** An action's own allowlist is additive to the model-level action allowlist. */
+/** Either allowlist authorizes an action; when both are present, both must allow the role. */
 export function hasRegisteredActionPermission(adminUser: AdminUser, permissions: ModelPermissions, action: AdminAction): boolean {
-   if (!hasActionPermission(adminUser, permissions, action.name)) return false;
-   if (adminUser.isSuperAdmin || action.allowedRoles === undefined) return true;
-   return action.allowedRoles.includes(adminUser.role);
+   if (adminUser.isSuperAdmin) return true;
+
+   const modelAllowedRoles = permissions.actions?.[action.name];
+   const actionAllowedRoles = action.allowedRoles;
+   if (modelAllowedRoles === undefined && actionAllowedRoles === undefined) return false;
+   return (modelAllowedRoles === undefined || modelAllowedRoles.includes(adminUser.role))
+      && (actionAllowedRoles === undefined || actionAllowedRoles.includes(adminUser.role));
 }

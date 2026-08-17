@@ -46,6 +46,7 @@ const readCookie = (req: Request, name: string): string | null => {
 };
 
 const sessionHash = (token: string) => createHash("sha256").update(token).digest("hex");
+const pathAtBase = (basePath: string, path: string): string => `${basePath === "/" ? "" : basePath}${path}`;
 
 const serializeSessionCookie = (token: string, config: BuiltInAuthConfig, basePath: string, expires: Date): string => {
    const secure = config.secureCookies ?? process.env.NODE_ENV === "production";
@@ -179,7 +180,7 @@ export const enforceBuiltInAdminPage = (prisma: PrismaLike, config: BuiltInAuthC
    }
    const adminUser = await getBuiltInAdminUser(req, prisma, config);
    if (!adminUser) {
-      res.redirect(`${basePath}/login`);
+      res.redirect(pathAtBase(basePath, "/login"));
       return;
    }
    next();

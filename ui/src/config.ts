@@ -6,3 +6,5 @@ declare global {
 
 /** Set by the server in index.html so one UI build works at any base path. */
 export const adminBasePath = window.__EXPRESS_ADMIN_BASE_PATH__ ?? "/admin";
+
+export const joinAdminPath = (basePath: string, path: string): string => `${basePath === "/" ? "" : basePath}${path}`;
