@@ -1,5 +1,5 @@
-import { Monitor, Moon, Palette, Sun } from "lucide-react";
-import { createContext, useContext, useLayoutEffect, useState, type ReactNode } from "react";
+import { Monitor, Moon, Sun } from "lucide-react";
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 type ThemeMode = "system" | "light" | "dark";
 type PaletteName = "lime" | "ocean" | "violet" | "rose" | "amber";
@@ -64,18 +64,34 @@ const useTheme = () => {
 
 export const ThemeSettings = ({ email, role }: { email: string; role: string }) => {
    const [open, setOpen] = useState(false);
+   const controlRef = useRef<HTMLDivElement>(null);
    const { mode, palette, setMode, setPalette } = useTheme();
    const ModeIcon = mode === "dark" ? Moon : mode === "light" ? Sun : Monitor;
 
+   useEffect(() => {
+      if (!open) return;
+      const closeOnOutsidePress = (event: PointerEvent) => {
+         if (controlRef.current && !controlRef.current.contains(event.target as Node)) setOpen(false);
+      };
+      const closeOnEscape = (event: KeyboardEvent) => {
+         if (event.key === "Escape") setOpen(false);
+      };
+      document.addEventListener("pointerdown", closeOnOutsidePress);
+      document.addEventListener("keydown", closeOnEscape);
+      return () => {
+         document.removeEventListener("pointerdown", closeOnOutsidePress);
+         document.removeEventListener("keydown", closeOnEscape);
+      };
+   }, [open]);
+
    return (
-      <div className="appearance-control">
+      <div className="appearance-control" ref={controlRef}>
          <button className="appearance-trigger identity-chip" type="button" aria-expanded={open} aria-controls="appearance-panel" onClick={() => setOpen((value) => !value)}>
             <span className="avatar">{email.slice(0, 1).toUpperCase()}</span>
             <span className="identity-copy">
                <strong>{email}</strong>
                <span>{role}</span>
             </span>
-            <Palette className="appearance-icon" size={16} strokeWidth={1.75} aria-hidden />
          </button>
          {open && (
             <section className="appearance-panel" id="appearance-panel" aria-label="Appearance settings">
