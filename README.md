@@ -62,9 +62,10 @@ await admin.mount(app);
 app.listen(3000);
 ```
 
-Open `http://localhost:3000/admin`. Every admin API request requires the
-configured `getCurrentUser` adapter; do not use a development super-admin
-identity in production.
+Open `http://localhost:3000/admin`. Every admin API request requires either
+the configured external adapter or built-in admin authentication. Built-in mode
+provides `/admin/login`, database-backed admin sessions, and a
+`createsuperuser` command. See the [authentication guide](docs/guide/auth.md).
 
 ## Schema file
 

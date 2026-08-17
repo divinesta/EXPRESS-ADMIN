@@ -6,6 +6,7 @@ import type { AdminConfig, ModelConfig } from "./core/types.js";
 import { AdminRegistry } from "./core/registry.js";
 import { createSchemaEndpoint } from "./api/schemaEndpoint.js";
 import { createAuthenticationMiddleware } from "./auth/middleware.js";
+import { createBuiltInAuthenticationMiddleware, createBuiltInAuthRouter, enforceBuiltInAdminPage, isBuiltInAuth } from "./auth/builtIn.js";
 import { createCrudRouter } from "./api/routerFactory.js";
 import { createActionRouter } from "./api/actionRouter.js";
 import { createApiErrorHandler } from "./api/errors.js";
@@ -84,10 +85,16 @@ export function createAdmin(config: AdminConfig): Admin {
          // ── Step 2: Register routes ────────────────────────────
          router.use(json());
 
+         if (isBuiltInAuth(config.auth)) {
+            router.use("/api/auth", createBuiltInAuthRouter(config.prisma, config.auth));
+         }
+
          // Every API endpoint requires an authenticated admin. The middleware
          // resolves config.auth.getCurrentUser(req) once and exposes its
          // verified result as req.adminUser for later permission and scope checks.
-         router.use("/api", createAuthenticationMiddleware(config.auth));
+         router.use("/api", isBuiltInAuth(config.auth)
+            ? createBuiltInAuthenticationMiddleware(config.prisma, config.auth)
+            : createAuthenticationMiddleware(config.auth));
 
          // Schema endpoint — GET /admin/api/schema
          // Returns all registered models + resolved config as JSON.
@@ -105,6 +112,7 @@ export function createAdmin(config: AdminConfig): Admin {
          // always win, then fall back to index.html for client-side routes such
          // as /admin/posts/123.
          const uiDist = resolve(dirname(fileURLToPath(import.meta.url)), "../ui/dist");
+         if (isBuiltInAuth(config.auth)) router.use(enforceBuiltInAdminPage(config.prisma, config.auth, basePath));
          router.use(expressStatic(uiDist, { index: "index.html" }));
          router.get(/^(?!\/api(?:\/|$)).*/, (_req, res) => {
             res.sendFile(resolve(uiDist, "index.html"));
@@ -131,6 +139,9 @@ export type {
    ModelConfig,
    AdminUser,
    AuthConfig,
+   BuiltInAuthConfig,
+   ExternalAuthConfig,
+   ExpressAdminCliConfig,
    AuditConfig,
    AdminAuditEvent,
    AdminFieldMeta,
@@ -144,4 +155,5 @@ export type {
    SchemaResponse,
    PrismaLike,
 } from "./core/types.js";
+export { hashAdminPassword } from "./auth/builtIn.js";
 export type { ResolvedModelConfig, FullRegisteredModel } from "./core/registry.js";

@@ -10,15 +10,8 @@ Prisma models: `User`, `Post`, `Tenant`, `AdminAuditLog`.
 
 Only **User** and **Post** are registered. Tenant is a join key. The audit table is write-only from `audit.write`.
 
-Seeded operators:
-
-| Email | Name | Role | Tenant |
-| --- | --- | --- | --- |
-| `ada@example.test` | Ada Lovelace | `ADMIN` | Northwind |
-| `grace@example.test` | Grace Hopper | `ADMIN` | Contoso |
-| `linus@example.test` | Linus Torvalds | `SUPER_ADMIN` | Northwind |
-
-Two posts: a published Northwind welcome (Ada) and a Contoso draft (Grace).
+The seed creates application users and tenant data. Administrator accounts are
+separate and are created with the superuser command.
 
 ## Run it
 
@@ -31,18 +24,12 @@ export DATABASE_URL=postgresql://postgres:postgres@localhost:5435/prisma_express
 bun run example:db:generate
 bun run example:db:push
 bun run example:seed
+bun run example:admin:createsuperuser
 bun run dev
 ```
 
-Open `http://localhost:3000/admin`. Switch identity by restarting with `EXAMPLE_ADMIN_EMAIL`:
-
-```bash
-EXAMPLE_ADMIN_EMAIL=ada@example.test bun run dev
-EXAMPLE_ADMIN_EMAIL=grace@example.test bun run dev
-EXAMPLE_ADMIN_EMAIL=linus@example.test bun run dev
-```
-
-That env var is **development-only**. Real apps resolve `getCurrentUser` from a session or JWT.
+Open `http://localhost:3000/admin/login` and sign in with the superuser you
+created.
 
 ## What the host actually configures
 
@@ -52,17 +39,9 @@ const admin = createAdmin({
   databaseProvider: "postgresql",
   siteName: "Express Admins",
   auth: {
-    getCurrentUser: async () => {
-      const user = await prisma.user.findUnique({ where: { email: adminEmail } });
-      if (!user) return null;
-      return {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        isSuperAdmin: user.role === "SUPER_ADMIN",
-        tenantId: user.tenantId,
-      };
-    },
+    mode: "built-in",
+    identifier: "email",
+    secureCookies: false,
   },
   audit: { write: async (event) => { /* AdminAuditLog.create */ } },
 });
@@ -87,16 +66,9 @@ admin.register("Post", {
 
 ## What you should see
 
-As Ada:
-
-- Users: Ada and Linus (Northwind), not Grace
-- Posts: the welcome post, not the Contoso draft
-- New Post: author dropdown is Northwind people; `tenantId` is filled for you
-- Publish selected: only works on Northwind ids
-
-As Grace: the mirror image.
-
-As Linus: both tenants, both posts, both author lists.
+As a superuser: both tenants, both posts, and both author lists. Create an
+`ExpressAdminUser` with role `ADMIN` and a seeded `tenantId` to try the scoped
+administrator view.
 
 If any of that fails, `scope` is not on that path. File an issue — that is a security bug, not a missing feature.
 

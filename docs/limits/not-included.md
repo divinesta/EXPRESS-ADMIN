@@ -14,7 +14,7 @@ You can set a `belongsTo` foreign key. That is the full relation write model.
 
 ## Auth and UI
 
-- No login page, session store, or password reset
+- No password reset or MFA flow
 - No dashboards beyond model counts
 - No fieldsets, collapsed groups, or per-field help text
 - No plugin API

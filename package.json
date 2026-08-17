@@ -1,10 +1,13 @@
 {
   "name": "prisma-express-admin",
-  "version": "0.3.1",
-  "description": "A Django-admin-like tool for Express + Prisma",
+  "version": "0.4.0",
+  "description": "A Django-like admin panel for Express and Prisma, with optional built-in admin authentication",
   "license": "MIT",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "prisma-express-admin": "./dist/cli.js"
+  },
   "type": "module",
   "repository": {
     "type": "git",
@@ -18,7 +21,9 @@
     "express",
     "prisma",
     "admin",
-    "admin-panel"
+    "admin-panel",
+    "authentication",
+    "session"
   ],
   "exports": {
     ".": {
@@ -39,7 +44,7 @@
   },
   "scripts": {
     "dev": "bun run --watch examples/basic/index.ts",
-    "build": "bun run build:ui && bun build src/index.ts --outdir dist --target node --external express --external @prisma/internals && tsc --project tsconfig.build.json",
+    "build": "bun run build:ui && bun build src/index.ts src/cli.ts --outdir dist --target node --external express --external @prisma/internals && tsc --project tsconfig.build.json",
     "build:ui": "bun run --cwd ui build",
     "test": "bun test",
     "test:unit": "bun test tests/unit",
@@ -50,6 +55,7 @@
     "example:db:generate": "prisma generate --schema examples/basic/prisma/schema.prisma",
     "example:db:push": "prisma db push --schema examples/basic/prisma/schema.prisma",
     "example:seed": "bun run examples/basic/seed.ts",
+    "example:admin:createsuperuser": "bun run --cwd examples/basic admin:createsuperuser",
     "typecheck": "tsc --noEmit",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",

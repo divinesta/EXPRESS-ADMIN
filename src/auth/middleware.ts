@@ -26,6 +26,10 @@ function isAdminUser(value: unknown): value is AdminUser {
 export function createAuthenticationMiddleware(auth: AuthConfig): RequestHandler {
    return async (req, res, next) => {
       try {
+         if (!("getCurrentUser" in auth)) {
+            sendApiError(res, new AuthenticationError());
+            return;
+         }
          const adminUser = await auth.getCurrentUser(req);
 
          if (!isAdminUser(adminUser)) {

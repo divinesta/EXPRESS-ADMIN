@@ -1,112 +1,93 @@
 # Authentication
 
-The library does not log anyone in. You already have sessions, JWT, or API keys. You map that identity onto an `AdminUser`.
+Prisma Express Admin has a built-in, admin-only authentication mode. It owns a separate `ExpressAdminUser` table, a separate `ExpressAdminSession` table, and a login page at `/admin/login`.
+
+Your application's own users and authentication are not read or changed.
+
+```text
+Application User + application session     ExpressAdminUser + admin session
+             /app/login                              /admin/login
+```
+
+## Built-in authentication
+
+Choose whether administrators sign in with an email address or a username. Generate the matching Prisma schema:
+
+```sh
+npx prisma-express-admin auth:schema --identifier email
+```
+
+or:
+
+```sh
+npx prisma-express-admin auth:schema --identifier username
+```
+
+Paste the generated models into `schema.prisma`, then run your normal Prisma migration and client generation commands.
+
+Configure the admin with the same choice:
 
 ```ts
-createAdmin({
+const admin = createAdmin({
   prisma,
   auth: {
-    getCurrentUser: async (req) => {
-      const user = await readUserFromYourAuth(req);
-      if (!user) return null;
-      return {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        isSuperAdmin: user.role === "SUPER_ADMIN",
-        tenantId: user.tenantId,
-      };
-    },
+    mode: "built-in",
+    identifier: "email",
   },
 });
 ```
 
-Return `null` (or throw) to reject. The API responds `401 AUTHENTICATION_REQUIRED` and does not leak adapter errors.
+The user model is `ExpressAdminUser` and the session model is `ExpressAdminSession` by default. You may rename either with `userModel` or `sessionModel` if your Prisma schema uses a different name.
 
-## Required shape
+## Create the first superuser
 
-| Field | Type | Required |
-| --- | --- | --- |
-| `id` | string | yes |
-| `email` | string | yes |
-| `role` | string | yes |
-| `isSuperAdmin` | boolean | yes |
-| `tenantId` | string | no |
-| `institutionId` | string | no |
-| `metadata` | object | no |
+The CLI needs the application's real Prisma client. Create `express-admin.config.mjs` next to your package manifest:
 
-A missing `email` or `isSuperAdmin` is not “almost logged in.” It is 401. The middleware checks the shape before attaching `req.adminUser`.
+```js
+import { prisma } from "./src/prisma.js";
 
-## Session
-
-```ts
-getCurrentUser: async (req) => {
-  const session = await sessions.get(req);
-  if (!session?.user) return null;
-  return toAdminUser(session.user);
+export default {
+  prisma,
+  auth: {
+    mode: "built-in",
+    identifier: "email",
+  },
 };
 ```
 
-The UI sends `credentials: "include"` so cookies work if admin and API share a site.
+Then run:
 
-## Admin login page
-
-The admin package deliberately does not own passwords, session storage, MFA, or
-account recovery. Put the login page in the host application, then let that
-application create the same secure session cookie used by `getCurrentUser`.
-
-The recommended flow is:
-
-1. An operator visits `/admin`.
-2. Host middleware redirects an unauthenticated visitor to `/login?next=/admin`.
-3. The host login page verifies credentials and any required MFA.
-4. The host creates an `HttpOnly`, `Secure`, `SameSite=Lax` session cookie and redirects to the validated `next` path.
-5. `auth.getCurrentUser` reads that session and returns a complete `AdminUser`.
-
-Keep admin eligibility in the host authorization layer. A user who can sign in
-is not automatically an admin: check an `ADMIN` or `SUPER_ADMIN` role before
-returning the `AdminUser`, and apply tenant `scope()` separately.
-
-```ts
-app.use("/admin", async (req, res, next) => {
-  const session = await sessions.get(req);
-  if (!session?.user) {
-    res.redirect(`/login?next=${encodeURIComponent(req.originalUrl)}`);
-    return;
-  }
-  if (!["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) {
-    res.status(403).send("Admin access is required.");
-    return;
-  }
-  next();
-});
+```sh
+npx prisma-express-admin createsuperuser --config ./express-admin.config.mjs
 ```
 
-Validate `next` against same-site paths before redirecting so the login page
-cannot become an open redirect. The SPA still shows an access-required state
-if the API responds with 401, which covers expired sessions and direct API use.
+The command asks for the selected identifier and password, hashes the password, then creates an active `SUPER_ADMIN` account. In a CI-only setup, provide `--email` or `--username` plus `EXPRESS_ADMIN_PASSWORD` instead of interactive input.
 
-## Bearer token
+Open `/admin/login` after starting the server. Built-in auth creates a secure, `HttpOnly`, `SameSite=Lax` cookie with the `/admin` path. It does not create an application session.
+
+## Administrator roles
+
+Only active accounts with `ADMIN` or `SUPER_ADMIN` can sign in. `SUPER_ADMIN` bypasses model role allowlists. `ADMIN` is still subject to configured permissions and `scope()`.
+
+Do not register `ExpressAdminUser` or `ExpressAdminSession` as editable models. They contain credentials and session records.
+
+## External authentication
+
+Teams that already have an identity provider can keep the existing adapter mode:
 
 ```ts
-getCurrentUser: async (req) => {
-  const header = req.headers.authorization;
-  if (!header?.startsWith("Bearer ")) return null;
-  const payload = await verifyJwt(header.slice(7));
-  return payload ? toAdminUser(payload) : null;
-};
+auth: {
+  mode: "external",
+  getCurrentUser: async (req) => {
+    const user = await readUserFromYourAuth(req);
+    return user ? {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      isSuperAdmin: user.role === "SUPER_ADMIN",
+    } : null;
+  },
+}
 ```
 
-## What is protected
-
-Every `/admin/api/*` route, including `GET /admin/api/schema`. The schema lists field names, enums, relations, and permissions. Treat it like your data model — because it is.
-
-The static UI (`/admin`, `/admin/users`) is HTML/JS. Screens go blank or show “sign in through the host application” when the schema request is 401. Put the admin behind your own gate as well if the JS bundle must stay private.
-
-## Super-admin vs authenticated
-
-`isSuperAdmin: true` skips **role allowlists**. It does not skip `scope()` unless your `scope` function returns `{}` for that user. Linus in the example is a super-admin *and* the scope function lets him see both tenants. Those are two separate decisions.
-
-The published package has no hardcoded development user. The example’s `EXAMPLE_ADMIN_EMAIL` adapter is example-only.
-
-Full type: [`AdminUser`](/reference/admin-user).
+External mode has no built-in login page because the external system owns the login flow.

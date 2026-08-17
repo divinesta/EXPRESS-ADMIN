@@ -3,6 +3,9 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "admin:createsuperuser": "bun ../../src/cli.ts createsuperuser --config ./express-admin.config.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest",
     "prisma": "^7.9.1"

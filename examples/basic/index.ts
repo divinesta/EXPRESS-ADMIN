@@ -14,7 +14,6 @@ if (!databaseUrl) {
 
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: databaseUrl }) });
 const app = express();
-const adminEmail = process.env.EXAMPLE_ADMIN_EMAIL ?? "ada@example.test";
 const schemaPath = fileURLToPath(new URL("./prisma/schema.prisma", import.meta.url));
 
 const admin = createAdmin({
@@ -23,13 +22,9 @@ const admin = createAdmin({
   databaseProvider: "postgresql",
   siteName: "Express Admin",
   auth: {
-    // Development-only identity. Set EXAMPLE_ADMIN_EMAIL to switch tenants.
-    // Real applications must resolve this from their session or JWT.
-    getCurrentUser: async () => {
-      const user = await prisma.user.findUnique({ where: { email: adminEmail } });
-      if (!user) return null;
-      return { id: user.id, email: user.email, role: user.role, isSuperAdmin: user.role === "SUPER_ADMIN", tenantId: user.tenantId };
-    },
+    mode: "built-in",
+    identifier: "email",
+    secureCookies: false,
   },
   audit: {
     write: async (event) => {

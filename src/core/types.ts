@@ -330,7 +330,14 @@ export interface ModelConfig {
  */
 export interface AdminUser {
    id: string;
+   /**
+    * A stable display identity. For username-based built-in accounts this is
+    * populated with the username to preserve the established AdminUser API.
+    */
    email: string;
+
+   /** Username is present when built-in auth uses username/password. */
+   username?: string;
    role: string;
 
    /**
@@ -356,7 +363,8 @@ export interface AdminUser {
  * The auth configuration passed to createAdmin().
  * Tells the system how to verify a request and identify the admin user.
  */
-export interface AuthConfig {
+export interface ExternalAuthConfig {
+   mode?: "external";
    /**
     * Given a request, return the authenticated AdminUser or null.
     * Throw or return null to reject the request (401).
@@ -367,7 +375,29 @@ export interface AuthConfig {
     * - Look up an API key
     */
    getCurrentUser: (req: Request) => Promise<AdminUser | null>;
+}
 
+/** Built-in, admin-only credentials and database-backed sessions. */
+export interface BuiltInAuthConfig {
+   mode: "built-in";
+   /** Choose the single identifier used on the login form. */
+   identifier: "email" | "username";
+   /** Defaults to ExpressAdminUser. */
+   userModel?: string;
+   /** Defaults to ExpressAdminSession. */
+   sessionModel?: string;
+   /** Session lifetime in seconds. Defaults to seven days. */
+   sessionTtlSeconds?: number;
+   /** Force a Secure cookie. Defaults to true in production. */
+   secureCookies?: boolean;
+}
+
+export type AuthConfig = ExternalAuthConfig | BuiltInAuthConfig;
+
+/** Configuration consumed by the `createsuperuser` CLI command. */
+export interface ExpressAdminCliConfig {
+   prisma: PrismaLike;
+   auth: BuiltInAuthConfig;
 }
 
 /** A safe, append-only description of an admin mutation. */
@@ -375,7 +405,7 @@ export interface AdminAuditEvent {
    type: "create" | "update" | "delete" | "action";
    modelName: string;
    recordIds: Array<string | number>;
-   actor: Pick<AdminUser, "id" | "email" | "role">;
+   actor: { id: string; email: string; role: string };
    timestamp: Date;
    /** Safe context only, such as an action name. Never include field values or secrets. */
    metadata?: Record<string, string | number | boolean | null>;

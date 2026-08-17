@@ -15,10 +15,11 @@ export DATABASE_URL=postgresql://postgres:postgres@localhost:5435/prisma_express
 bun run example:db:generate
 bun run example:db:push
 bun run example:seed
+bun run example:admin:createsuperuser
 bun run dev
 ```
 
-Open `http://localhost:3000/admin`. The repeatable seed creates three tenants,
+Open `http://localhost:3000/admin/login` and sign in with the superuser you just created. The repeatable seed creates three tenants,
 72 users, 60 customers, 36 categories, 120 products, 120 posts, 90 orders,
 and their order items. It is safe to run again: it replaces only records that
 belong to the three deterministic example tenants.
@@ -29,18 +30,9 @@ actions, and audit logging.
 
 ## Try the tenant boundaries
 
-The host reads `EXAMPLE_ADMIN_EMAIL` to select a development identity. Restart
-the host with one of these values after seeding:
-
-```bash
-EXAMPLE_ADMIN_EMAIL=ada@example.test bun run dev
-EXAMPLE_ADMIN_EMAIL=grace@example.test bun run dev
-EXAMPLE_ADMIN_EMAIL=linus@example.test bun run dev
-```
-
-- Ada is a Northwind admin and sees only Northwind users and posts.
-- Grace is a Contoso admin and sees only Contoso users and posts.
-- Linus is a super-admin and sees both tenants.
+A created superuser sees every tenant. Create an `ExpressAdminUser` with role
+`ADMIN` and a `tenantId` matching one of the seeded tenants to test tenant-scoped
+views. The account signs in through `/admin/login` using its own admin password.
 
 The server applies this boundary through each registered model's `scope()`;
 changing a request in the browser cannot bypass it. Creating a Post assigns the
@@ -52,5 +44,5 @@ append-only `AdminAuditLog` record. The example intentionally does not expose
 that log as an admin model, so it remains an operational record rather than a
 user-editable resource.
 
-These identities are development-only. Real applications must implement
-`auth.getCurrentUser` from their own authentication system.
+The example uses built-in admin-only authentication. Its customer-facing `User`
+records are not used for administrator login.

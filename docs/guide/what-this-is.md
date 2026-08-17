@@ -29,11 +29,13 @@ Three calls. Everything else is optional configuration on those calls.
 | --- | --- |
 | Express app | Admin routes under `basePath` |
 | Generated Prisma Client | Introspection of `schema.prisma` |
-| Authentication | Mapping your user onto `AdminUser` |
+| Built-in admin credentials, or external authentication | Creating an `AdminUser` request context |
 | Tenancy rules, via `scope()` | Applying that scope on every record operation |
 | Optional audit destination | Emitting safe, append-only events |
 
-There is **no** built-in login screen, user table, or session store. If `getCurrentUser` returns `null`, the API is 401. Wire it to whatever already authenticates your operators.
+Built-in mode provides an admin-only login screen, `ExpressAdminUser` table, and
+session store. External mode still lets you map an existing identity onto an
+`AdminUser`. See [Authentication](/guide/auth).
 
 ## What this is not
 

@@ -13,6 +13,11 @@ enum Role {
   USER
 }
 
+enum ExpressAdminRole {
+  ADMIN
+  SUPER_ADMIN
+}
+
 enum ProductStatus {
   DRAFT
   ACTIVE
@@ -39,6 +44,30 @@ model User {
   updatedAt DateTime @updatedAt
   posts     Post[]
   orders    Order[] @relation("OrderOwner")
+}
+
+model ExpressAdminUser {
+  id           String           @id @default(cuid())
+  email        String           @unique
+  passwordHash String
+  role         ExpressAdminRole @default(ADMIN)
+  isActive     Boolean          @default(true)
+  tenantId     String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  sessions     ExpressAdminSession[]
+}
+
+model ExpressAdminSession {
+  id        String           @id @default(cuid())
+  tokenHash String           @unique
+  userId    String
+  user      ExpressAdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime         @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model Post {

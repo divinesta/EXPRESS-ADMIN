@@ -7,16 +7,19 @@ import { Dashboard } from "./pages/Dashboard";
 import { ListView } from "./pages/ListView";
 import { useSchema } from "./hooks/useSchema";
 import { ThemeProvider, ThemeSettings } from "./components/ThemeProvider";
+import { LoginPage } from "./pages/LoginPage";
 import type { Schema } from "./types";
 
 export const App = () => {
-   const state = useSchema();
+   const isLoginRoute = window.location.pathname.endsWith("/login");
+   const state = useSchema(!isLoginRoute);
    return (
       <ThemeProvider>
-         {state.status === "loading" && <FullPageState eyebrow="Prisma Admin" title="Loading your workspace" detail="Reading the models and permissions available to you…" busy />}
-         {state.status === "unauthorized" && <FullPageState eyebrow="Access required" title="You’re not signed in" detail="Sign in through the host application, then return here to open the admin workspace." />}
-         {state.status === "error" && <FullPageState eyebrow="Unable to connect" title="The admin is unavailable" detail={state.message} />}
-         {state.status === "ready" && (
+         {isLoginRoute && <LoginPage />}
+         {!isLoginRoute && state.status === "loading" && <FullPageState eyebrow="Prisma Admin" title="Loading your workspace" detail="Reading the models and permissions available to you…" busy />}
+         {!isLoginRoute && state.status === "unauthorized" && <FullPageState eyebrow="Access required" title="You’re not signed in" detail="Sign in through the host application, then return here to open the admin workspace." />}
+         {!isLoginRoute && state.status === "error" && <FullPageState eyebrow="Unable to connect" title="The admin is unavailable" detail={state.message} />}
+         {!isLoginRoute && state.status === "ready" && (
             <BrowserRouter basename="/admin">
                <AdminShell schema={state.schema} />
             </BrowserRouter>

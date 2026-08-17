@@ -2,6 +2,32 @@
 
 All notable changes to Prisma Express Admin are documented here.
 
+## 0.4.0 - 17-08-26
+
+### Added
+
+- Optional built-in, admin-only authentication using separate
+  `ExpressAdminUser` credentials and `ExpressAdminSession` records. It is
+  independent from the consuming application's users, login, and sessions.
+- A protected `/admin/login` page with accessible email/password or
+  username/password sign-in, password visibility control, loading feedback,
+  inline errors, and reduced-motion support.
+- Database-backed admin sessions using secure, `HttpOnly`, `SameSite=Lax`
+  cookies and hashed session tokens.
+- The `prisma-express-admin` CLI, including `auth:schema` to generate the
+  required Prisma models and `createsuperuser` to create the first active
+  `SUPER_ADMIN` account.
+- Built-in authentication coverage for password verification, login, session
+  creation, and protected API access.
+
+### Changed
+
+- Authentication now supports an explicit `mode: "built-in"` configuration in
+  addition to the existing external `getCurrentUser` adapter.
+- The basic example now uses built-in admin authentication and provides
+  `bun run example:admin:createsuperuser` for its initial administrator.
+- Authentication documentation now describes both built-in and external modes.
+
 ## 0.3.0 - 16-08-26
 
 ### Added

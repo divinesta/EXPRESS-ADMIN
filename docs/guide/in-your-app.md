@@ -76,7 +76,7 @@ const admin = createAdmin({
 | `auth.getCurrentUser` | Required. Your session/JWT → [`AdminUser`](/reference/admin-user). |
 | `audit.write` | Optional. Called after successful writes. You own the table. |
 
-The example’s `getCurrentUser` looks up a user by `EXAMPLE_ADMIN_EMAIL`. That is **dev-only**. In your app, read the cookie or `Authorization` header. See [Authentication](/guide/auth).
+The example uses built-in admin-only authentication. In external mode, read your own cookie or `Authorization` header in `getCurrentUser`. See [Authentication](/guide/auth).
 
 Skip `audit` until you have a place to store events. See [Audit log](/guide/audit).
 

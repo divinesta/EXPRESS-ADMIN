@@ -139,7 +139,7 @@ app.listen(3000);
 
 Replace `"User"` / `"Post"` with model names from **your** `schema.prisma`, PascalCase, exact.
 
-`getCurrentUser` must return `{ id, email, role, isSuperAdmin }` or `null`. A partial object is 401. There is no built-in login — wire this to your session or JWT. See [Authentication](/guide/auth).
+`getCurrentUser` must return `{ id, email, role, isSuperAdmin }` or `null` when you use external auth. A partial object is 401. For built-in admin-only login, sessions, and superuser creation, see [Authentication](/guide/auth).
 
 ## Open the admin
 
