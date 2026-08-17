@@ -49,6 +49,43 @@ getCurrentUser: async (req) => {
 
 The UI sends `credentials: "include"` so cookies work if admin and API share a site.
 
+## Admin login page
+
+The admin package deliberately does not own passwords, session storage, MFA, or
+account recovery. Put the login page in the host application, then let that
+application create the same secure session cookie used by `getCurrentUser`.
+
+The recommended flow is:
+
+1. An operator visits `/admin`.
+2. Host middleware redirects an unauthenticated visitor to `/login?next=/admin`.
+3. The host login page verifies credentials and any required MFA.
+4. The host creates an `HttpOnly`, `Secure`, `SameSite=Lax` session cookie and redirects to the validated `next` path.
+5. `auth.getCurrentUser` reads that session and returns a complete `AdminUser`.
+
+Keep admin eligibility in the host authorization layer. A user who can sign in
+is not automatically an admin: check an `ADMIN` or `SUPER_ADMIN` role before
+returning the `AdminUser`, and apply tenant `scope()` separately.
+
+```ts
+app.use("/admin", async (req, res, next) => {
+  const session = await sessions.get(req);
+  if (!session?.user) {
+    res.redirect(`/login?next=${encodeURIComponent(req.originalUrl)}`);
+    return;
+  }
+  if (!["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) {
+    res.status(403).send("Admin access is required.");
+    return;
+  }
+  next();
+});
+```
+
+Validate `next` against same-site paths before redirecting so the login page
+cannot become an open redirect. The SPA still shows an access-required state
+if the API responds with 401, which covers expired sessions and direct API use.
+
 ## Bearer token
 
 ```ts

@@ -6,18 +6,22 @@ import { CreateView } from "./pages/CreateView";
 import { Dashboard } from "./pages/Dashboard";
 import { ListView } from "./pages/ListView";
 import { useSchema } from "./hooks/useSchema";
+import { ThemeProvider, ThemeSettings } from "./components/ThemeProvider";
 import type { Schema } from "./types";
 
 export const App = () => {
    const state = useSchema();
-   if (state.status === "loading") return <FullPageState eyebrow="Prisma Admin" title="Loading your workspace" detail="Reading the models and permissions available to you…" busy />;
-   if (state.status === "unauthorized")
-      return <FullPageState eyebrow="Access required" title="You’re not signed in" detail="Sign in through the host application, then return here to open the admin workspace." />;
-   if (state.status === "error") return <FullPageState eyebrow="Unable to connect" title="The admin is unavailable" detail={state.message} />;
    return (
-      <BrowserRouter basename="/admin">
-         <AdminShell schema={state.schema} />
-      </BrowserRouter>
+      <ThemeProvider>
+         {state.status === "loading" && <FullPageState eyebrow="Prisma Admin" title="Loading your workspace" detail="Reading the models and permissions available to you…" busy />}
+         {state.status === "unauthorized" && <FullPageState eyebrow="Access required" title="You’re not signed in" detail="Sign in through the host application, then return here to open the admin workspace." />}
+         {state.status === "error" && <FullPageState eyebrow="Unable to connect" title="The admin is unavailable" detail={state.message} />}
+         {state.status === "ready" && (
+            <BrowserRouter basename="/admin">
+               <AdminShell schema={state.schema} />
+            </BrowserRouter>
+         )}
+      </ThemeProvider>
    );
 };
 
@@ -96,12 +100,8 @@ const AdminShell = ({ schema }: { schema: Schema }) => {
                      <strong>{crumbLabel}</strong>
                   </div>
                </div>
-               <div className="identity-chip">
-                  <div className="avatar">{schema.identity.email.slice(0, 1).toUpperCase()}</div>
-                  <div className="identity-copy">
-                     <strong>{schema.identity.email}</strong>
-                     <span>{schema.identity.role}</span>
-                  </div>
+               <div className="topbar-right">
+                  <ThemeSettings email={schema.identity.email} role={schema.identity.role} />
                </div>
             </header>
             <div className="content-wrap">

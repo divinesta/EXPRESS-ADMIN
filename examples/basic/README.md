@@ -18,9 +18,14 @@ bun run example:seed
 bun run dev
 ```
 
-Open `http://localhost:3000/admin`. The seeded tenants, users, and posts make
-it easy to exercise list, search, filter, detail, create, edit, delete,
-relation selection, custom actions, and audit logging.
+Open `http://localhost:3000/admin`. The repeatable seed creates three tenants,
+72 users, 60 customers, 36 categories, 120 products, 120 posts, 90 orders,
+and their order items. It is safe to run again: it replaces only records that
+belong to the three deterministic example tenants.
+
+This gives the admin enough data to exercise list pagination, search, filters,
+detail and create views, enum fields, tenant-scoped relation selection, custom
+actions, and audit logging.
 
 ## Try the tenant boundaries
 

@@ -1,5 +1,6 @@
 import express from "express";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { fileURLToPath } from "node:url";
 import { PrismaClient } from "./generated/prisma/client";
 // import { createAdmin } from "prisma-express-admin"
 import { createAdmin } from "../../src/index.ts";
@@ -14,9 +15,11 @@ if (!databaseUrl) {
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: databaseUrl }) });
 const app = express();
 const adminEmail = process.env.EXAMPLE_ADMIN_EMAIL ?? "ada@example.test";
+const schemaPath = fileURLToPath(new URL("./prisma/schema.prisma", import.meta.url));
 
 const admin = createAdmin({
   prisma,
+  schemaPath,
   databaseProvider: "postgresql",
   siteName: "Express Admin",
   auth: {
@@ -84,6 +87,41 @@ admin.register("Post", {
       },
     },
   ],
+});
+
+const tenantScope = async (adminUser: { isSuperAdmin: boolean; tenantId?: string }) => (adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" });
+
+admin.register("Customer", {
+  listDisplay: ["email", "fullName", "company", "isActive", "createdAt"],
+  listFilter: ["isActive", "createdAt"],
+  searchFields: ["email", "fullName", "company"],
+  scope: tenantScope,
+});
+
+admin.register("Category", {
+  listDisplay: ["name", "description", "createdAt"],
+  searchFields: ["name", "description"],
+  scope: tenantScope,
+});
+
+admin.register("Product", {
+  listDisplay: ["sku", "name", "category", "price", "stock", "status"],
+  listFilter: ["status", "createdAt"],
+  searchFields: ["sku", "name", "description"],
+  scope: tenantScope,
+});
+
+admin.register("Order", {
+  listDisplay: ["reference", "customer", "owner", "status", "total", "placedAt"],
+  listFilter: ["status", "placedAt"],
+  searchFields: ["reference"],
+  scope: tenantScope,
+});
+
+admin.register("OrderItem", {
+  listDisplay: ["order", "product", "quantity", "unitPrice", "createdAt"],
+  searchFields: [],
+  scope: async (adminUser) => (adminUser.isSuperAdmin ? {} : { order: { tenantId: adminUser.tenantId ?? "__no_tenant__" } }),
 });
 
 await admin.mount(app);

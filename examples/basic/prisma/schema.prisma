@@ -13,6 +13,20 @@ enum Role {
   USER
 }
 
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FULFILLED
+  CANCELLED
+  REFUNDED
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -24,6 +38,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   posts     Post[]
+  orders    Order[] @relation("OrderOwner")
 }
 
 model Post {
@@ -39,11 +54,88 @@ model Post {
   updatedAt DateTime @updatedAt
 }
 
+model Customer {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  fullName  String
+  company   String?
+  isActive  Boolean  @default(true)
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  products    Product[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tenantId, name])
+}
+
+model Product {
+  id          String        @id @default(cuid())
+  sku         String        @unique
+  name        String
+  description String?
+  price       Decimal       @db.Decimal(10, 2)
+  stock       Int           @default(0)
+  status      ProductStatus @default(DRAFT)
+  categoryId  String
+  category    Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  tenantId    String
+  tenant      Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  orderItems  OrderItem[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  reference   String      @unique
+  status      OrderStatus @default(PENDING)
+  total       Decimal     @db.Decimal(10, 2)
+  customerId  String
+  customer    Customer    @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  ownerId     String
+  owner       User        @relation("OrderOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  tenantId    String
+  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  items       OrderItem[]
+  placedAt    DateTime    @default(now())
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  quantity  Int
+  unitPrice Decimal  @db.Decimal(10, 2)
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now())
+
+  @@unique([orderId, productId])
+}
+
 model Tenant {
   id        String   @id @default(cuid())
   name      String   @unique
   users     User[]
   posts     Post[]
+  customers Customer[]
+  categories Category[]
+  products  Product[]
+  orders    Order[]
   createdAt DateTime @default(now())
 }
 

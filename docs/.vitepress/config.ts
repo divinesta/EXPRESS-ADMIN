@@ -3,6 +3,8 @@ import { defineConfig } from "vitepress";
 export default defineConfig({
    title: "Prisma Express Admin",
    description: "A Django-style admin panel for Express and Prisma. Register your models. The schema is the source of truth.",
+   base: "/docs/",
+   outDir: "../site-dist/docs",
    appearance: "dark",
    srcExclude: ["MULTI_ORM_NOTES.md"],
    cleanUrls: true,
