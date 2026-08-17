@@ -13,6 +13,12 @@ All notable changes to Prisma Express Admin are documented here.
   forms, permissions, relations, scope, hooks, auditing, and the HTTP API.
 - Row numbering, selectable rows, and responsive table/list controls in the
   admin UI.
+- Appearance settings in the admin UI, with system, light, and dark modes plus
+  five selectable accent palettes. Preferences are stored locally per device.
+- Host-login guidance covering redirects, secure session cookies, admin-role
+  checks, MFA, and safe post-login return paths.
+- Customer, Category, Product, Order, and OrderItem models in the basic
+  multi-tenant example, with deterministic sample data and tenant scopes.
 
 ### Changed
 
@@ -26,6 +32,8 @@ All notable changes to Prisma Express Admin are documented here.
   tables, forms, typography, and responsive styling.
 - Updated the basic example to use explicit list filters and consume the
   package through its published entry point.
+- Updated the package homepage and configured the combined landing site and
+  documentation site for Vercel deployment.
 
 ## 0.2.0 - 16-08-26
 
