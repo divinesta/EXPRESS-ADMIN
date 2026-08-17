@@ -1,4 +1,5 @@
 {
+  "installCommand": "bun install --frozen-lockfile",
   "buildCommand": "bun run build:site",
   "outputDirectory": "site-dist",
   "cleanUrls": true

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
    <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,7 +7,7 @@
          name="description"
          content="Express Admin is a schema-driven operations panel for Express and Prisma. Register your models and get a guarded admin UI and API from the schema you already have."
       />
-      <meta name="color-scheme" content="dark" />
+      <meta name="color-scheme" content="dark light" />
       <title>Express Admin - The operations panel for Express and Prisma</title>
       <link rel="stylesheet" href="styles.css" />
       <link
@@ -35,6 +35,16 @@
             </nav>
 
             <div class="header-actions">
+               <button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch to light theme">
+                  <svg class="theme-icon theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                     <circle cx="12" cy="12" r="3.5" />
+                     <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                  </svg>
+                  <svg class="theme-icon theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                     <path d="M20.5 14.3A8.5 8.5 0 0 1 9.7 3.5 8.5 8.5 0 1 0 20.5 14.3Z" />
+                  </svg>
+                  <span class="sr-only" data-theme-toggle-label>Switch to light theme</span>
+               </button>
                <a href="https://divinesta/EXPRESS-ADMIN" class="btn btn-ghost" aria-label="View source on GitHub">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                      <path
@@ -72,12 +82,28 @@
                <div class="slider" role="region" aria-roledescription="carousel" aria-label="Product screenshots" tabindex="0">
                   <p class="sr-only" id="slide-status" aria-live="polite">Overview</p>
                   <div class="slider-track">
-                     <figure class="slide is-active" data-slide data-label="Overview" aria-hidden="false">
-                        <img src="images/product-overview.png" width="1912" height="926" alt="Express Admin overview showing registered User and Post models" />
-                     </figure>
-                     <figure class="slide" data-slide data-label="User list" aria-hidden="true">
-                        <img src="images/product-users.png" width="1917" height="929" alt="User list with search, filters, roles, and two operator records" />
-                     </figure>
+                     <div class="slider-theme" data-slider-theme="dark">
+                        <figure class="slide is-active" data-slide data-label="Overview" aria-hidden="false">
+                           <img src="images/product-dark-overview.png" width="1913" height="924" alt="Express Admin dark overview showing available models" />
+                        </figure>
+                        <figure class="slide" data-slide data-label="User list" aria-hidden="true">
+                           <img src="images/product-dark-users.png" width="1913" height="924" alt="Express Admin dark user list with search and filters" loading="lazy" />
+                        </figure>
+                        <figure class="slide" data-slide data-label="Create user" aria-hidden="true">
+                           <img src="images/product-dark-create-user.png" width="1913" height="924" alt="Express Admin dark create user form" loading="lazy" />
+                        </figure>
+                     </div>
+                     <div class="slider-theme" data-slider-theme="light" hidden>
+                        <figure class="slide is-active" data-slide data-label="Overview" aria-hidden="false">
+                           <img src="images/product-light-overview.png" width="1911" height="927" alt="Express Admin light overview showing available models" />
+                        </figure>
+                        <figure class="slide" data-slide data-label="User list" aria-hidden="true">
+                           <img src="images/product-light-users.png" width="1911" height="927" alt="Express Admin light user list with search and filters" loading="lazy" />
+                        </figure>
+                        <figure class="slide" data-slide data-label="Create user" aria-hidden="true">
+                           <img src="images/product-light-create-user.png" width="1911" height="927" alt="Express Admin light create user form" loading="lazy" />
+                        </figure>
+                     </div>
                   </div>
                </div>
 
@@ -88,6 +114,7 @@
                   <div class="slider-dots" aria-label="Choose screenshot">
                      <button type="button" aria-current="true" aria-label="Overview" data-slider-dot="0"></button>
                      <button type="button" aria-current="false" aria-label="User list" data-slider-dot="1"></button>
+                     <button type="button" aria-current="false" aria-label="Create user" data-slider-dot="2"></button>
                   </div>
                   <button type="button" class="slider-arrow" data-slider-next aria-label="Next screenshot">
                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
@@ -282,6 +309,18 @@ app.listen(3000);</textarea
 
       <script>
          (function () {
+            try {
+               var requestedTheme = new URLSearchParams(window.location.search).get("theme");
+               if (requestedTheme === "light" || requestedTheme === "dark") {
+                  document.documentElement.dataset.theme = requestedTheme;
+               } else {
+                  var savedTheme = window.localStorage.getItem("express-admin-landing-theme");
+                  if (savedTheme === "light" || savedTheme === "dark") {
+                     document.documentElement.dataset.theme = savedTheme;
+                  }
+               }
+            } catch (err) {}
+
             document.documentElement.classList.add("js");
             var header = document.querySelector(".header");
             var heroCopy = document.querySelector(".hero-copy");
@@ -323,15 +362,47 @@ app.listen(3000);</textarea
             }
 
             var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-            var slides = Array.prototype.slice.call(document.querySelectorAll("[data-slide]"));
+            var sliderThemes = Array.prototype.slice.call(document.querySelectorAll("[data-slider-theme]"));
+            var slides = [];
             var dots = Array.prototype.slice.call(document.querySelectorAll("[data-slider-dot]"));
             var statusEl = document.getElementById("slide-status");
             var toggleBtn = document.querySelector("[data-slider-toggle]");
+            var themeToggle = document.querySelector("[data-theme-toggle]");
             var slider = document.querySelector(".slider");
             var index = 0;
             var playing = !reduceMotion;
             var timer = null;
             var INTERVAL = 6000;
+
+            function setSliderTheme(theme) {
+               sliderThemes.forEach(function (group) {
+                  group.hidden = group.getAttribute("data-slider-theme") !== theme;
+               });
+               slides = Array.prototype.slice.call(document.querySelectorAll('[data-slider-theme="' + theme + '"] [data-slide]'));
+               index = 0;
+            }
+
+            function updateThemeToggle(theme) {
+               if (!themeToggle) return;
+               var nextTheme = theme === "dark" ? "light" : "dark";
+               var label = "Switch to " + nextTheme + " theme";
+               themeToggle.setAttribute("aria-label", label);
+               var toggleLabel = themeToggle.querySelector("[data-theme-toggle-label]");
+               if (toggleLabel) toggleLabel.textContent = label;
+            }
+
+            function setTheme(theme, persist) {
+               document.documentElement.dataset.theme = theme;
+               if (persist) {
+                  try {
+                     window.localStorage.setItem("express-admin-landing-theme", theme);
+                  } catch (err) {}
+               }
+               setSliderTheme(theme);
+               updateThemeToggle(theme);
+               render();
+               start();
+            }
 
             function render() {
                slides.forEach(function (slide, i) {
@@ -400,6 +471,12 @@ app.listen(3000);</textarea
                   else stop();
                });
             }
+            if (themeToggle) {
+               themeToggle.addEventListener("click", function () {
+                  var currentTheme = document.documentElement.dataset.theme === "light" ? "light" : "dark";
+                  setTheme(currentTheme === "dark" ? "light" : "dark", true);
+               });
+            }
             var stage = document.querySelector(".product-stage");
             if (stage) {
                stage.addEventListener("mouseenter", stop);
@@ -445,8 +522,7 @@ app.listen(3000);</textarea
                else start();
             });
 
-            render();
-            start();
+            setTheme(document.documentElement.dataset.theme === "light" ? "light" : "dark", false);
 
             var copyBtn = document.querySelector("[data-copy]");
             var source = document.getElementById("install-source");

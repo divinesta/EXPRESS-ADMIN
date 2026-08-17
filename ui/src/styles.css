@@ -1582,6 +1582,7 @@ body,
 .avatar { background: var(--accent-soft); color: var(--accent-strong); }
 .model-card:hover { border-color: var(--accent); box-shadow: 0 8px 20px var(--shadow); }
 .model-card-icon, .preview-icon, .empty-icon { background: var(--accent-soft); color: var(--accent-strong); }
+:root[data-theme="light"] .model-card-icon { color: var(--sidebar); }
 .model-card-copy small, .metric-label, .field-type, .preview-card p, .empty-state p, .full-page-state p { color: var(--text-muted); }
 .arrow, .metric-foot { color: var(--accent); }
 .primary-button, .search-box button { background: var(--action-background); color: var(--on-action); }
