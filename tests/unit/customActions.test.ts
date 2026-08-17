@@ -51,7 +51,7 @@ describe("custom actions", () => {
             beforeDelete: async (id) => void beforeDelete.push(id),
             afterDelete: async (id) => void afterDelete.push(id),
          },
-         resolved: { listDisplay: ["title"], listFilter: [], searchFields: ["title"], defaultSort: { field: "id", direction: "asc" }, perPage: 25, permissions: {} },
+         resolved: { listDisplay: ["title"], listFilter: [], searchFields: ["title"], defaultSort: { field: "id", direction: "asc" }, perPage: 25, permissions: { delete: ["ADMIN"] } },
       };
       const prisma = {
          post: {
@@ -92,7 +92,7 @@ describe("custom actions", () => {
                },
             ],
          },
-         resolved: { listDisplay: ["title"], listFilter: [], searchFields: ["title"], defaultSort: { field: "id", direction: "asc" }, perPage: 25, permissions: {} },
+         resolved: { listDisplay: ["title"], listFilter: [], searchFields: ["title"], defaultSort: { field: "id", direction: "asc" }, perPage: 25, permissions: { actions: { publish_selected: ["ADMIN"] } } },
       };
       const prisma = {
          post: {
@@ -117,7 +117,7 @@ describe("custom actions", () => {
       const model: FullRegisteredModel = {
          meta: postMeta,
          raw: { actions: [{ name: "publish_selected", label: "Publish selected posts", handler: async () => { executions += 1; return { message: "Unexpected" }; } }] },
-         resolved: { listDisplay: ["title"], listFilter: [], searchFields: ["title"], defaultSort: { field: "id", direction: "asc" }, perPage: 25, permissions: {} },
+         resolved: { listDisplay: ["title"], listFilter: [], searchFields: ["title"], defaultSort: { field: "id", direction: "asc" }, perPage: 25, permissions: { actions: { publish_selected: ["ADMIN"] } } },
       };
       const prisma = { post: { findMany: async () => [{ id: "post-a" }] } } as PrismaLike;
       const router = createActionRouter(new Map([["posts", model]]), prisma);

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { hasModelPermission } from "../../src/auth/permissions.ts";
 import { buildScopedRecordWhere, resolveScope } from "../../src/api/scope.ts";
-import { RequestValidationError, validateWritePayload } from "../../src/api/validation.ts";
+import { RequestValidationError, isFieldWritable, validateWritePayload } from "../../src/api/validation.ts";
 import type { AdminModelMeta, AdminUser, ModelConfig } from "../../src/core/types.ts";
 
 const adminUser: AdminUser = {
@@ -33,6 +33,8 @@ describe("API safety foundation", () => {
    test("only allows configured roles, unless the user is a super admin", () => {
       expect(hasModelPermission(adminUser, { delete: ["SUPER_ADMIN"] }, "delete")).toBe(false);
       expect(hasModelPermission({ ...adminUser, isSuperAdmin: true }, { delete: [] }, "delete")).toBe(true);
+      expect(hasModelPermission(adminUser, {}, "list")).toBe(true);
+      expect(hasModelPermission(adminUser, {}, "create")).toBe(false);
    });
 
    test("keeps scope and record ID as separate required conditions", async () => {
@@ -46,14 +48,24 @@ describe("API safety foundation", () => {
    test("rejects sensitive and unknown write fields", () => {
       const config: ModelConfig = {};
 
-      expect(() => validateWritePayload(userMeta, config, { passwordHash: "not-allowed" })).toThrow(RequestValidationError);
-      expect(() => validateWritePayload(userMeta, config, { unknown: true })).toThrow(RequestValidationError);
+      expect(() => validateWritePayload(userMeta, config, adminUser, { passwordHash: "not-allowed" })).toThrow(RequestValidationError);
+      expect(() => validateWritePayload(userMeta, config, adminUser, { unknown: true })).toThrow(RequestValidationError);
    });
 
    test("accepts a valid scalar payload and rejects invalid enum values", () => {
       const config: ModelConfig = {};
 
-      expect(validateWritePayload(userMeta, config, { email: "admin@example.com", role: "ADMIN" })).toEqual({ email: "admin@example.com", role: "ADMIN" });
-      expect(() => validateWritePayload(userMeta, config, { role: "OWNER" })).toThrow(RequestValidationError);
+      expect(validateWritePayload(userMeta, config, adminUser, { email: "admin@example.com", role: "ADMIN" })).toEqual({ email: "admin@example.com", role: "ADMIN" });
+      expect(() => validateWritePayload(userMeta, config, adminUser, { role: "OWNER" })).toThrow(RequestValidationError);
+   });
+
+   test("enforces per-field write roles", () => {
+      const config: ModelConfig = { fields: { role: { writeRoles: ["SUPER_ADMIN"] } } };
+      const role = userMeta.fields.find((field) => field.name === "role");
+      if (!role) throw new Error("Test field not found.");
+
+      expect(isFieldWritable(role, config, adminUser)).toBe(false);
+      expect(isFieldWritable(role, config, { ...adminUser, role: "SUPER_ADMIN", isSuperAdmin: true })).toBe(true);
+      expect(() => validateWritePayload(userMeta, config, adminUser, { role: "ADMIN" })).toThrow(RequestValidationError);
    });
 });

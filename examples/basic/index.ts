@@ -48,6 +48,17 @@ admin.register("User", {
   listDisplay: ["email", "fullName", "role", "isActive"],
   listFilter: ["role", "isActive"],
   searchFields: ["email", "fullName"],
+  permissions: {
+    list: ["SUPER_ADMIN", "ADMIN"],
+    view: ["SUPER_ADMIN", "ADMIN"],
+    create: ["SUPER_ADMIN", "ADMIN"],
+    update: ["SUPER_ADMIN", "ADMIN"],
+    delete: ["SUPER_ADMIN"],
+  },
+  fields: {
+    role: { writeRoles: ["SUPER_ADMIN"] },
+    isActive: { writeRoles: ["SUPER_ADMIN"] },
+  },
   scope: async (adminUser) => (adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" }),
 });
 
@@ -55,6 +66,14 @@ admin.register("Post", {
   listDisplay: ["title", "author", "published", "createdAt"],
   listFilter: ["published", "createdAt"],
   searchFields: ["title", "content"],
+  permissions: {
+    list: ["SUPER_ADMIN", "ADMIN"],
+    view: ["SUPER_ADMIN", "ADMIN"],
+    create: ["SUPER_ADMIN", "ADMIN"],
+    update: ["SUPER_ADMIN", "ADMIN"],
+    delete: ["SUPER_ADMIN"],
+    actions: { publish_selected: ["SUPER_ADMIN", "ADMIN"], unpublish_selected: ["SUPER_ADMIN", "ADMIN"] },
+  },
   scope: async (adminUser) => (adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" }),
   actions: [
     {
@@ -85,17 +104,26 @@ admin.register("Post", {
 });
 
 const tenantScope = async (adminUser: { isSuperAdmin: boolean; tenantId?: string }) => (adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" });
+const editorPermissions = {
+  list: ["SUPER_ADMIN", "ADMIN"],
+  view: ["SUPER_ADMIN", "ADMIN"],
+  create: ["SUPER_ADMIN", "ADMIN"],
+  update: ["SUPER_ADMIN", "ADMIN"],
+  delete: ["SUPER_ADMIN"],
+};
 
 admin.register("Customer", {
   listDisplay: ["email", "fullName", "company", "isActive", "createdAt"],
   listFilter: ["isActive", "createdAt"],
   searchFields: ["email", "fullName", "company"],
+  permissions: editorPermissions,
   scope: tenantScope,
 });
 
 admin.register("Category", {
   listDisplay: ["name", "description", "createdAt"],
   searchFields: ["name", "description"],
+  permissions: editorPermissions,
   scope: tenantScope,
 });
 
@@ -103,6 +131,7 @@ admin.register("Product", {
   listDisplay: ["sku", "name", "category", "price", "stock", "status"],
   listFilter: ["status", "createdAt"],
   searchFields: ["sku", "name", "description"],
+  permissions: editorPermissions,
   scope: tenantScope,
 });
 
@@ -110,12 +139,14 @@ admin.register("Order", {
   listDisplay: ["reference", "customer", "owner", "status", "total", "placedAt"],
   listFilter: ["status", "placedAt"],
   searchFields: ["reference"],
+  permissions: editorPermissions,
   scope: tenantScope,
 });
 
 admin.register("OrderItem", {
   listDisplay: ["order", "product", "quantity", "unitPrice", "createdAt"],
   searchFields: [],
+  permissions: editorPermissions,
   scope: async (adminUser) => (adminUser.isSuperAdmin ? {} : { order: { tenantId: adminUser.tenantId ?? "__no_tenant__" } }),
 });
 

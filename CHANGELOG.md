@@ -2,6 +2,28 @@
 
 All notable changes to Prisma Express Admin are documented here.
 
+## 0.5.0 - 17-08-26
+
+### Security
+
+- Create, update, delete, and custom actions now deny by default. List and
+  view remain available to authenticated administrators unless restricted.
+- Added per-field `writeRoles` restrictions, enforced by both the UI and API.
+- Built-in authentication now rejects registration of its user and session
+  models, preventing credential and session exposure in the admin panel.
+- Password verification now applies the stored scrypt parameters with strict
+  resource limits and a fixed derived-key length.
+- Unknown login identifiers now run a dummy password verification, reducing
+  account-enumeration timing differences.
+- Added per-process login throttling, enabled by default.
+
+### Changed
+
+- Built-in auth cookies, login routes, redirects, API requests, and the UI
+  router now honor any configured `basePath`.
+- The built-in login and logout flow has expanded coverage for rejected roles,
+  inactive accounts, cookie settings, logout, throttling, and custom paths.
+
 ## 0.4.1 - 17-08-26
 
 ### Changed

@@ -229,6 +229,9 @@ export interface AdminFieldOverride {
 
    /** If true, field is shown but cannot be edited */
    readOnly?: boolean;
+
+   /** Roles allowed to write this field. Omit to follow the model permission. */
+   writeRoles?: string[];
 }
 
 /**
@@ -236,7 +239,8 @@ export interface AdminFieldOverride {
  * Each value is a list of role strings that are allowed to perform that action.
  * e.g. { delete: ["SUPER_ADMIN"] } means only SUPER_ADMIN can delete.
  *
- * If a permission is omitted, any authenticated admin can perform that action.
+ * List and view are allowed to authenticated admins when omitted. Create,
+ * update, delete, and custom actions require an explicit allowlist.
  */
 export interface ModelPermissions {
    list?: string[];
@@ -390,6 +394,8 @@ export interface BuiltInAuthConfig {
    sessionTtlSeconds?: number;
    /** Force a Secure cookie. Defaults to true in production. */
    secureCookies?: boolean;
+   /** Per-process login throttling. Enabled by default (10 attempts per minute per IP and identifier). */
+   loginRateLimit?: false | { windowMs?: number; maxAttempts?: number };
 }
 
 export type AuthConfig = ExternalAuthConfig | BuiltInAuthConfig;

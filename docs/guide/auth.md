@@ -63,13 +63,27 @@ npx prisma-express-admin createsuperuser --config ./express-admin.config.mjs
 
 The command asks for the selected identifier and password, hashes the password, then creates an active `SUPER_ADMIN` account. In a CI-only setup, provide `--email` or `--username` plus `EXPRESS_ADMIN_PASSWORD` instead of interactive input.
 
-Open `/admin/login` after starting the server. Built-in auth creates a secure, `HttpOnly`, `SameSite=Lax` cookie with the `/admin` path. It does not create an application session.
+Open `/admin/login` after starting the server. Built-in auth creates a secure, `HttpOnly`, `SameSite=Lax` cookie scoped to your configured `basePath`. It does not create an application session. The login page and API routes use that same path automatically.
 
 ## Administrator roles
 
 Only active accounts with `ADMIN` or `SUPER_ADMIN` can sign in. `SUPER_ADMIN` bypasses model role allowlists. `ADMIN` is still subject to configured permissions and `scope()`.
 
-Do not register `ExpressAdminUser` or `ExpressAdminSession` as editable models. They contain credentials and session records.
+`ExpressAdminUser` and `ExpressAdminSession` cannot be registered as admin models in built-in mode. This prevents credential or session records from being exposed through the panel.
+
+## Login throttling
+
+Built-in authentication throttles sign-in attempts per IP address and identifier: ten attempts per minute by default. Configure a different limit for a single-process deployment, or disable it only when your application already enforces an equivalent shared rate limit:
+
+```ts
+auth: {
+  mode: "built-in",
+  identifier: "email",
+  loginRateLimit: { maxAttempts: 5, windowMs: 60_000 },
+}
+```
+
+The built-in limiter is in-memory and therefore applies independently to each server process. Use an edge, reverse-proxy, or shared-store limiter as well when running multiple instances.
 
 ## External authentication
 

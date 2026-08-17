@@ -52,9 +52,8 @@ const DEFAULT_PER_PAGE = 50;
  * Default: 25. The developer can override this per model.
  *
  * ── permissions ───────────────────────────────────────────────────────────
- * Default: empty permissions object = any authenticated admin can do anything.
- * The permission middleware treats an empty/undefined permission list as
- * "allow all authenticated admins".
+ * Default: authenticated admins may list and view. Create, update, delete,
+ * and custom actions require an explicit role allowlist.
  */
 function resolveConfig(meta: AdminModelMeta, userConfig: ModelConfig): ResolvedModelConfig {
    // ── listDisplay ────────────────────────────────────────────

@@ -4,7 +4,7 @@ import type { AdminRegistry } from "../core/registry.js";
 import { hasModelPermission, hasRegisteredActionPermission } from "../auth/permissions.js";
 import { DELETE_SELECTED_ACTION } from "../core/defaultActions.js";
 import { AuthenticationError, sendApiError } from "./errors.js";
-import { isFieldVisible } from "./validation.js";
+import { isFieldVisible, isFieldWritable } from "./validation.js";
 import { isBuiltInAuth } from "../auth/builtIn.js";
 
 // ============================================================
@@ -57,7 +57,7 @@ import { isBuiltInAuth } from "../auth/builtIn.js";
  * ```
  */
 export function createSchemaEndpoint(registry: AdminRegistry, config: AdminConfig): RequestHandler {
-   const basePath = config.basePath ?? "/admin";
+   const basePath = config.basePath && config.basePath.length > 1 ? config.basePath.replace(/\/+$/, "") : config.basePath ?? "/admin";
    const siteName = config.siteName ?? "Prisma Admin";
 
    return (req, res) => {
@@ -80,7 +80,9 @@ export function createSchemaEndpoint(registry: AdminRegistry, config: AdminConfi
          siteName,
          basePath,
          models: models.map(({ meta, resolved, raw }) => {
-            const visibleFields = meta.fields.filter((field) => isFieldVisible(field, raw));
+            const visibleFields = meta.fields
+               .filter((field) => isFieldVisible(field, raw))
+               .map((field) => ({ ...field, isReadOnly: field.isReadOnly || !isFieldWritable(field, raw, adminUser) }));
             const visibleFieldNames = new Set(visibleFields.map((field) => field.name));
             const canDelete = hasModelPermission(adminUser, resolved.permissions, "delete");
             const customActions = (raw.actions ?? [])

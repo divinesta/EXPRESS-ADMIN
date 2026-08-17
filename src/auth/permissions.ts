@@ -10,15 +10,15 @@ export type AdminOperation = "list" | "view" | "create" | "update" | "delete";
 /**
  * Decide whether an authenticated admin may perform a model operation.
  *
- * Omitted permissions intentionally preserve the public API's current
- * convention: any authenticated admin is allowed. A configured empty role
- * list denies everyone except a super admin, making a deny rule explicit.
+ * Reads remain available to authenticated admins by default. Writes and
+ * custom actions require an explicit allowlist. A configured empty role list
+ * denies everyone except a super admin.
  */
 export function hasModelPermission(adminUser: AdminUser, permissions: ModelPermissions, operation: AdminOperation): boolean {
    if (adminUser.isSuperAdmin) return true;
 
    const allowedRoles = permissions[operation];
-   if (allowedRoles === undefined) return true;
+   if (allowedRoles === undefined) return operation === "list" || operation === "view";
 
    return allowedRoles.includes(adminUser.role);
 }
@@ -28,7 +28,7 @@ export function hasActionPermission(adminUser: AdminUser, permissions: ModelPerm
    if (adminUser.isSuperAdmin) return true;
 
    const allowedRoles = permissions.actions?.[actionName];
-   if (allowedRoles === undefined) return true;
+   if (allowedRoles === undefined) return false;
 
    return allowedRoles.includes(adminUser.role);
 }

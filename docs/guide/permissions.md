@@ -25,21 +25,38 @@ admin.register("Post", {
 
 Operations: `list`, `view`, `create`, `update`, `delete`, plus named actions.
 
-## The three rules people miss
+## The four rules people miss
 
-1. **Omitted** — if you leave `delete` off the object, any authenticated admin may delete.
-2. **Empty list** — `delete: []` denies everyone except `isSuperAdmin`.
-3. **Super-admin** — `isSuperAdmin: true` bypasses these lists. It does not bypass `scope()`.
+1. **Omitted reads** — `list` and `view` are available to an authenticated admin unless you restrict them.
+2. **Omitted writes** — `create`, `update`, `delete`, and custom actions are denied unless you explicitly allow a role.
+3. **Empty list** — `delete: []` denies everyone except `isSuperAdmin`.
+4. **Super-admin** — `isSuperAdmin: true` bypasses these lists. It does not bypass `scope()`.
 
 ```ts
-// Anyone signed in can do everything on User
+// Anyone signed in can read User, but nobody except a super-admin can write it.
 admin.register("User");
 
-// Only SUPER_ADMIN can delete; other ops still open to every signed-in admin
-admin.register("User", { permissions: { delete: ["SUPER_ADMIN"] } });
+// Allow ADMIN to create and update, but reserve deletion for SUPER_ADMIN.
+admin.register("User", { permissions: { create: ["ADMIN"], update: ["ADMIN"], delete: ["SUPER_ADMIN"] } });
 ```
 
-Be explicit on every operation you care about. Partial objects are not “deny the rest.”
+Be explicit about every write operation you want enabled. Partial objects deny omitted writes.
+
+## Protecting individual fields
+
+Use `writeRoles` to protect sensitive application fields even when a role may update the model:
+
+```ts
+admin.register("User", {
+  permissions: { update: ["SUPER_ADMIN", "ADMIN"] },
+  fields: {
+    role: { writeRoles: ["SUPER_ADMIN"] },
+    isActive: { writeRoles: ["SUPER_ADMIN"] },
+  },
+});
+```
+
+The field remains visible but is read-only for other roles. The API enforces this too.
 
 ## How the UI uses this
 

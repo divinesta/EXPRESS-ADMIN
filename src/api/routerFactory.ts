@@ -79,7 +79,7 @@ export function createCrudRouter(models: Map<string, FullRegisteredModel>, prism
       if (!adminUser) return;
 
       const scope = await resolveScope(model.raw, adminUser);
-      let data = applyCreateScope(validateWritePayload(model.meta, model.raw, req.body), scope);
+      let data = applyCreateScope(validateWritePayload(model.meta, model.raw, adminUser, req.body), scope);
       await assertSelectedRelationsAreVisible(data, model, models, prisma, adminUser);
       if (model.raw.beforeCreate) data = await model.raw.beforeCreate(data);
 
@@ -102,7 +102,7 @@ export function createCrudRouter(models: Map<string, FullRegisteredModel>, prism
 
       const scope = await resolveScope(model.raw, adminUser);
       const id = getRecordId(req, model.meta);
-      let data = validateWritePayload(model.meta, model.raw, req.body);
+      let data = validateWritePayload(model.meta, model.raw, adminUser, req.body);
       assertScopeFieldsUnchanged(data, scope);
       await assertSelectedRelationsAreVisible(data, model, models, prisma, adminUser);
       if (model.raw.beforeUpdate) data = await model.raw.beforeUpdate(String(id), data);

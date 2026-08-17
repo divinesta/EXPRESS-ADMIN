@@ -1,10 +1,10 @@
-import { createHash, randomBytes, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
-import { promisify } from "node:util";
+import { createHash, randomBytes } from "node:crypto";
 import type { Request, RequestHandler, Response } from "express";
 import type { AdminUser, BuiltInAuthConfig, PrismaLike } from "../core/types.js";
+import { createLoginRateLimiter } from "./loginRateLimit.js";
+import { hashAdminPassword, verifyAdminPassword, verifyLoginPassword } from "./passwords.js";
 
-const scrypt = promisify(scryptCallback);
-const passwordPrefix = "scrypt";
+export { hashAdminPassword, verifyAdminPassword } from "./passwords.js";
 const sessionCookieName = "express_admin_session";
 const defaultSessionTtlSeconds = 60 * 60 * 24 * 7;
 
@@ -47,11 +47,11 @@ const readCookie = (req: Request, name: string): string | null => {
 
 const sessionHash = (token: string) => createHash("sha256").update(token).digest("hex");
 
-const serializeSessionCookie = (token: string, config: BuiltInAuthConfig, expires: Date): string => {
+const serializeSessionCookie = (token: string, config: BuiltInAuthConfig, basePath: string, expires: Date): string => {
    const secure = config.secureCookies ?? process.env.NODE_ENV === "production";
    return [
       `${sessionCookieName}=${encodeURIComponent(token)}`,
-      "Path=/admin",
+      `Path=${basePath}`,
       "HttpOnly",
       "SameSite=Lax",
       `Max-Age=${Math.max(0, Math.floor((expires.getTime() - Date.now()) / 1000))}`,
@@ -60,30 +60,9 @@ const serializeSessionCookie = (token: string, config: BuiltInAuthConfig, expire
    ].filter(Boolean).join("; ");
 };
 
-const clearSessionCookie = (config: BuiltInAuthConfig): string => {
+const clearSessionCookie = (config: BuiltInAuthConfig, basePath: string): string => {
    const secure = config.secureCookies ?? process.env.NODE_ENV === "production";
-   return [`${sessionCookieName}=`, "Path=/admin", "HttpOnly", "SameSite=Lax", "Max-Age=0", "Expires=Thu, 01 Jan 1970 00:00:00 GMT", secure ? "Secure" : ""].filter(Boolean).join("; ");
-};
-
-export const hashAdminPassword = async (password: string): Promise<string> => {
-   const salt = randomBytes(16).toString("base64url");
-   const cost = 16_384;
-   const blockSize = 8;
-   const parallelism = 1;
-   const derived = await scrypt(password, salt, 64) as Buffer;
-   return [passwordPrefix, cost, blockSize, parallelism, salt, derived.toString("base64url")].join("$");
-};
-
-export const verifyAdminPassword = async (password: string, storedHash: string): Promise<boolean> => {
-   const [prefix, costValue, blockSizeValue, parallelismValue, salt, expectedValue] = storedHash.split("$");
-   if (prefix !== passwordPrefix || !costValue || !blockSizeValue || !parallelismValue || !salt || !expectedValue) return false;
-   const cost = Number(costValue);
-   const blockSize = Number(blockSizeValue);
-   const parallelism = Number(parallelismValue);
-   if (!Number.isSafeInteger(cost) || !Number.isSafeInteger(blockSize) || !Number.isSafeInteger(parallelism)) return false;
-   const expected = Buffer.from(expectedValue, "base64url");
-   const actual = await scrypt(password, salt, expected.length) as Buffer;
-   return expected.length === actual.length && timingSafeEqual(expected, actual);
+   return [`${sessionCookieName}=`, `Path=${basePath}`, "HttpOnly", "SameSite=Lax", "Max-Age=0", "Expires=Thu, 01 Jan 1970 00:00:00 GMT", secure ? "Secure" : ""].filter(Boolean).join("; ");
 };
 
 const toAdminUser = (user: BuiltInRecord): AdminUser | null => {
@@ -111,10 +90,11 @@ export const getBuiltInAdminUser = async (req: Request, prisma: PrismaLike, conf
    return session?.user ? toAdminUser(session.user) : null;
 };
 
-export const createBuiltInAuthRouter = (prisma: PrismaLike, config: BuiltInAuthConfig): RequestHandler => {
+export const createBuiltInAuthRouter = (prisma: PrismaLike, config: BuiltInAuthConfig, basePath = "/admin"): RequestHandler => {
    const users = delegateFor(prisma, config.userModel ?? "ExpressAdminUser");
    const sessions = delegateFor(prisma, config.sessionModel ?? "ExpressAdminSession");
    const ttlSeconds = config.sessionTtlSeconds ?? defaultSessionTtlSeconds;
+   const consumeLoginAttempt = createLoginRateLimiter(config);
 
    return async (req, res, next) => {
       if (req.method === "GET" && req.path === "/config") {
@@ -132,8 +112,15 @@ export const createBuiltInAuthRouter = (prisma: PrismaLike, config: BuiltInAuthC
                return;
             }
 
+            const retryAfter = consumeLoginAttempt(req, identifier);
+            if (retryAfter !== null) {
+               res.setHeader("Retry-After", String(retryAfter));
+               res.status(429).json({ error: "Too many sign-in attempts. Please try again later.", code: "LOGIN_RATE_LIMITED" });
+               return;
+            }
+
             const user = await users.findUnique({ where: { [config.identifier]: identifier } }) as BuiltInRecord | null;
-            const passwordMatches = user ? await verifyAdminPassword(password, user.passwordHash) : false;
+            const passwordMatches = await verifyLoginPassword(password, user?.passwordHash);
             const adminUser = user && passwordMatches ? toAdminUser(user) : null;
             if (!user || !adminUser) {
                res.status(401).json({ error: "Invalid credentials.", code: "INVALID_CREDENTIALS" });
@@ -143,7 +130,7 @@ export const createBuiltInAuthRouter = (prisma: PrismaLike, config: BuiltInAuthC
             const token = randomBytes(32).toString("base64url");
             const expiresAt = new Date(Date.now() + ttlSeconds * 1_000);
             await sessions.create({ data: { tokenHash: sessionHash(token), userId: user.id, expiresAt } });
-            res.setHeader("Set-Cookie", serializeSessionCookie(token, config, expiresAt));
+            res.setHeader("Set-Cookie", serializeSessionCookie(token, config, basePath, expiresAt));
             res.status(200).json({ ok: true });
             return;
          } catch (error) {
@@ -156,7 +143,7 @@ export const createBuiltInAuthRouter = (prisma: PrismaLike, config: BuiltInAuthC
          try {
             const token = readCookie(req, sessionCookieName);
             if (token) await sessions.deleteMany({ where: { tokenHash: sessionHash(token) } });
-            res.setHeader("Set-Cookie", clearSessionCookie(config));
+            res.setHeader("Set-Cookie", clearSessionCookie(config, basePath));
             res.status(204).end();
             return;
          } catch (error) {

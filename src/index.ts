@@ -1,6 +1,7 @@
 import { json, Router, static as expressStatic } from "express";
 import type { Application } from "express";
 import { dirname, resolve } from "node:path";
+import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import type { AdminConfig, ModelConfig } from "./core/types.js";
 import { AdminRegistry } from "./core/registry.js";
@@ -79,14 +80,19 @@ export function createAdmin(config: AdminConfig): Admin {
          // Throws with a clear message if anything is wrong.
          await registry.initialize({ schemaPath: config.schemaPath });
 
-         const basePath = config.basePath ?? "/admin";
+         const basePath = normalizeBasePath(config.basePath);
+         if (isBuiltInAuth(config.auth)) {
+            const protectedModels = new Set([config.auth.userModel ?? "ExpressAdminUser", config.auth.sessionModel ?? "ExpressAdminSession"]);
+            const exposedModel = registry.getAll().find((model) => protectedModels.has(model.meta.name));
+            if (exposedModel) throw new Error(`[prisma-express-admin] Built-in auth model "${exposedModel.meta.name}" cannot be registered in the admin panel.`);
+         }
          const router = Router();
 
          // ── Step 2: Register routes ────────────────────────────
          router.use(json());
 
          if (isBuiltInAuth(config.auth)) {
-            router.use("/api/auth", createBuiltInAuthRouter(config.prisma, config.auth));
+            router.use("/api/auth", createBuiltInAuthRouter(config.prisma, config.auth, basePath));
          }
 
          // Every API endpoint requires an authenticated admin. The middleware
@@ -113,9 +119,19 @@ export function createAdmin(config: AdminConfig): Admin {
          // as /admin/posts/123.
          const uiDist = resolve(dirname(fileURLToPath(import.meta.url)), "../ui/dist");
          if (isBuiltInAuth(config.auth)) router.use(enforceBuiltInAdminPage(config.prisma, config.auth, basePath));
-         router.use(expressStatic(uiDist, { index: "index.html" }));
-         router.get(/^(?!\/api(?:\/|$)).*/, (_req, res) => {
-            res.sendFile(resolve(uiDist, "index.html"));
+         router.use(expressStatic(uiDist, { index: false }));
+         router.get(/^(?!\/api(?:\/|$)).*/, async (_req, res, next) => {
+            try {
+               const indexHtml = await readFile(resolve(uiDist, "index.html"), "utf8");
+               const safeBasePath = JSON.stringify(basePath).replace(/</g, "\\u003c");
+               const assetBasePath = basePath === "/" ? "" : basePath;
+               const renderedIndex = indexHtml
+                  .replaceAll("/__EXPRESS_ADMIN_BASE_PATH__", assetBasePath)
+                  .replace("</head>", `<script>window.__EXPRESS_ADMIN_BASE_PATH__=${safeBasePath};</script></head>`);
+               res.type("html").send(renderedIndex);
+            } catch (error) {
+               next(error);
+            }
          });
 
          // ── Step 3: Mount the router ──────────────────────────
@@ -127,6 +143,11 @@ export function createAdmin(config: AdminConfig): Admin {
    };
 
    return admin;
+}
+
+function normalizeBasePath(basePath = "/admin"): string {
+   if (!basePath.startsWith("/")) throw new Error("[prisma-express-admin] basePath must start with '/'.");
+   return basePath.length > 1 ? basePath.replace(/\/+$/, "") : basePath;
 }
 
 // ============================================================

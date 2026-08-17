@@ -41,7 +41,7 @@ const postMeta: AdminModelMeta = {
 const model = (meta: AdminModelMeta, scope?: FullRegisteredModel["raw"]["scope"]): FullRegisteredModel => ({
    meta,
    raw: { scope },
-   resolved: { listDisplay: [meta.displayField], listFilter: [], searchFields: meta.searchableFields, defaultSort: { field: meta.idField, direction: "asc" }, perPage: 25, permissions: {} },
+   resolved: { listDisplay: [meta.displayField], listFilter: [], searchFields: meta.searchableFields, defaultSort: { field: meta.idField, direction: "asc" }, perPage: 25, permissions: { create: ["ADMIN"] } },
 });
 
 const dispatch = (router: Router, body: Record<string, unknown>) =>

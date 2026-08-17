@@ -1,4 +1,4 @@
-import type { AdminFieldMeta, AdminModelMeta, ModelConfig } from "../core/types.js";
+import type { AdminFieldMeta, AdminModelMeta, AdminUser, ModelConfig } from "../core/types.js";
 import { AdminApiError } from "./errors.js";
 
 // ============================================================
@@ -34,10 +34,19 @@ export function isFieldVisible(field: AdminFieldMeta, config: ModelConfig): bool
  * writes are intentionally excluded from the first CRUD release.
  */
 export function getWritableFields(meta: AdminModelMeta, config: ModelConfig): AdminFieldMeta[] {
-   return meta.fields.filter((field) => {
-      const override = config.fields?.[field.name];
-      return isFieldVisible(field, config) && field.type !== "relation" && !field.isReadOnly && !override?.readOnly;
-   });
+   return meta.fields.filter((field) => isFieldWritableByConfiguration(field, config));
+}
+
+function isFieldWritableByConfiguration(field: AdminFieldMeta, config: ModelConfig): boolean {
+   const override = config.fields?.[field.name];
+   return isFieldVisible(field, config) && field.type !== "relation" && !field.isReadOnly && !override?.readOnly;
+}
+
+/** True when the current administrator can modify this otherwise writable field. */
+export function isFieldWritable(field: AdminFieldMeta, config: ModelConfig, adminUser: AdminUser): boolean {
+   if (!isFieldWritableByConfiguration(field, config)) return false;
+   const writeRoles = config.fields?.[field.name]?.writeRoles;
+   return adminUser.isSuperAdmin || writeRoles === undefined || writeRoles.includes(adminUser.role);
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -78,10 +87,10 @@ function assertFieldValue(field: AdminFieldMeta, value: unknown): void {
  * Reject unknown, hidden, read-only, and incorrectly typed write properties.
  * The returned object is safe to pass to the scalar-only Prisma CRUD layer.
  */
-export function validateWritePayload(meta: AdminModelMeta, config: ModelConfig, body: unknown): Record<string, unknown> {
+export function validateWritePayload(meta: AdminModelMeta, config: ModelConfig, adminUser: AdminUser, body: unknown): Record<string, unknown> {
    if (!isPlainObject(body)) throw new RequestValidationError("Request body must be a JSON object.");
 
-   const writableByName = new Map(getWritableFields(meta, config).map((field) => [field.name, field]));
+   const writableByName = new Map(getWritableFields(meta, config).filter((field) => isFieldWritable(field, config, adminUser)).map((field) => [field.name, field]));
    const data: Record<string, unknown> = {};
 
    for (const [fieldName, value] of Object.entries(body)) {
