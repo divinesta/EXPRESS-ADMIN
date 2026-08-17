@@ -54,7 +54,7 @@
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
-    "build:site": "rm -rf public && mkdir -p public && cp -R landing/. public/ && vitepress build docs",
+    "build:site": "mkdir -p public && find public -mindepth 1 -delete && cp -R landing/. public/ && vitepress build docs",
     "landing": "bunx --bun serve landing -l 4173"
   },
   "devDependencies": {
