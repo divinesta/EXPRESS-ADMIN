@@ -2,6 +2,13 @@
 
 All notable changes to Prisma Express Admin are documented here.
 
+## 0.4.1 - 17-08-26
+
+### Changed
+
+- List-row hover states now use the same surface color as table headers in
+  light and dark modes, rather than switching to a high-contrast dark row.
+
 ## 0.4.0 - 17-08-26
 
 ### Added

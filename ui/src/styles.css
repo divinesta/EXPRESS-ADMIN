@@ -20,8 +20,8 @@
    --action-background: #0d222c;
    --action-hover: #193541;
    --on-action: #ffffff;
-   --table-row-hover: #1b3641;
-   --table-row-hover-text: #ffffff;
+   --table-row-hover: var(--surface-subtle);
+   --table-row-hover-text: var(--text-secondary);
    --table-row-selected: #edf1f2;
    --tag-background: #edf1f2;
    --tag-text: #526a73;
@@ -92,8 +92,8 @@
    --action-background: var(--accent-active);
    --action-hover: color-mix(in srgb, var(--accent-active) 84%, var(--surface-canvas));
    --on-action: var(--on-accent);
-   --table-row-hover: #19262a;
-   --table-row-hover-text: #f5f8f8;
+   --table-row-hover: var(--surface-subtle);
+   --table-row-hover-text: var(--text-secondary);
    --table-row-selected: #152025;
    --tag-background: #202d31;
    --tag-text: #c1ced1;
@@ -1626,6 +1626,12 @@ td, .detail-row dd, .table-primary-cell, .field-name { color: var(--text-seconda
 .palette-swatch span { background: var(--swatch); border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12); height: 20px; width: 20px; }
 .palette-swatch.lime { --swatch: #dbf27c; }.palette-swatch.ocean { --swatch: #17759b; }.palette-swatch.violet { --swatch: #6d51bd; }.palette-swatch.rose { --swatch: #b13e65; }.palette-swatch.amber { --swatch: #9a6500; }
 .palette-swatch.is-selected { background: var(--accent-wash); border-color: var(--accent); color: var(--accent-strong); font-weight: 600; }
+.appearance-logout { border-top: 1px solid var(--border); margin-top: 14px; padding-top: 14px; }
+.logout-button { align-items: center; background: color-mix(in srgb, var(--danger) 8%, var(--surface-raised)); border: 1px solid color-mix(in srgb, var(--danger) 42%, var(--border)); border-radius: 8px; color: var(--danger); cursor: pointer; display: flex; font: inherit; font-size: 12px; font-weight: 600; gap: 7px; justify-content: center; min-height: 40px; transition: background 160ms ease, border-color 160ms ease, transform 120ms ease; width: 100%; }
+.logout-button:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 14%, var(--surface-raised)); border-color: var(--danger); }
+.logout-button:active { transform: scale(.97); }
+.logout-button:disabled { cursor: wait; opacity: .68; }
+.appearance-logout p { color: var(--danger); font-size: 11px; line-height: 1.4; margin: 8px 0 0; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
 
 .login-page { align-items: center; background: radial-gradient(circle at 92% 8%, color-mix(in srgb, var(--accent-soft) 82%, transparent), transparent 28rem), var(--surface-canvas); display: flex; justify-content: center; min-height: 100dvh; padding: 24px; }

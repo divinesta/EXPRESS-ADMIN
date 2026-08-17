@@ -512,6 +512,7 @@ export interface SchemaResponse {
       role: string;
       isSuperAdmin: boolean;
    };
+   authMode: "built-in" | "external";
    models: Array<{
       meta: AdminModelMeta;
       config: {

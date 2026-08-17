@@ -5,6 +5,7 @@ import { hasModelPermission, hasRegisteredActionPermission } from "../auth/permi
 import { DELETE_SELECTED_ACTION } from "../core/defaultActions.js";
 import { AuthenticationError, sendApiError } from "./errors.js";
 import { isFieldVisible } from "./validation.js";
+import { isBuiltInAuth } from "../auth/builtIn.js";
 
 // ============================================================
 // SCHEMA ENDPOINT
@@ -75,6 +76,7 @@ export function createSchemaEndpoint(registry: AdminRegistry, config: AdminConfi
             role: adminUser.role,
             isSuperAdmin: adminUser.isSuperAdmin,
          },
+         authMode: isBuiltInAuth(config.auth) ? "built-in" : "external",
          siteName,
          basePath,
          models: models.map(({ meta, resolved, raw }) => {

@@ -1,4 +1,4 @@
-import { Monitor, Moon, Sun } from "lucide-react";
+import { LogOut, Monitor, Moon, Sun } from "lucide-react";
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 type ThemeMode = "system" | "light" | "dark";
@@ -62,8 +62,10 @@ const useTheme = () => {
    return theme;
 };
 
-export const ThemeSettings = ({ email, role }: { email: string; role: string }) => {
+export const ThemeSettings = ({ email, role, canLogout, onLogout }: { email: string; role: string; canLogout: boolean; onLogout: () => Promise<void> }) => {
    const [open, setOpen] = useState(false);
+   const [loggingOut, setLoggingOut] = useState(false);
+   const [logoutError, setLogoutError] = useState("");
    const controlRef = useRef<HTMLDivElement>(null);
    const { mode, palette, setMode, setPalette } = useTheme();
    const ModeIcon = mode === "dark" ? Moon : mode === "light" ? Sun : Monitor;
@@ -83,6 +85,18 @@ export const ThemeSettings = ({ email, role }: { email: string; role: string }) 
          document.removeEventListener("keydown", closeOnEscape);
       };
    }, [open]);
+
+   const logout = async () => {
+      if (loggingOut) return;
+      setLoggingOut(true);
+      setLogoutError("");
+      try {
+         await onLogout();
+      } catch (error) {
+         setLogoutError(error instanceof Error ? error.message : "Unable to sign out. Please try again.");
+         setLoggingOut(false);
+      }
+   };
 
    return (
       <div className="appearance-control" ref={controlRef}>
@@ -124,6 +138,15 @@ export const ThemeSettings = ({ email, role }: { email: string; role: string }) 
                      ))}
                   </div>
                </fieldset>
+               {canLogout && (
+                  <div className="appearance-logout">
+                     <button type="button" className="logout-button" onClick={() => void logout()} disabled={loggingOut}>
+                        <LogOut size={15} strokeWidth={1.75} aria-hidden />
+                        {loggingOut ? "Signing out…" : "Log out"}
+                     </button>
+                     {logoutError && <p role="alert">{logoutError}</p>}
+                  </div>
+               )}
             </section>
          )}
       </div>

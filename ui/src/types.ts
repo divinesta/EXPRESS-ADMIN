@@ -52,6 +52,7 @@ export type Schema = {
   siteName: string;
   basePath: string;
   identity: { id: string; email: string; role: string; isSuperAdmin: boolean };
+  authMode: "built-in" | "external";
   models: Model[];
 };
 

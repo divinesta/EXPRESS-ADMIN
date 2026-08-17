@@ -104,7 +104,11 @@ const AdminShell = ({ schema }: { schema: Schema }) => {
                   </div>
                </div>
                <div className="topbar-right">
-                  <ThemeSettings email={schema.identity.email} role={schema.identity.role} />
+                  <ThemeSettings email={schema.identity.email} role={schema.identity.role} canLogout={schema.authMode === "built-in"} onLogout={async () => {
+                     const response = await fetch(`${schema.basePath}/api/auth/logout`, { method: "POST", credentials: "include" });
+                     if (!response.ok) throw new Error("Unable to sign out. Please try again.");
+                     window.location.assign(`${schema.basePath}/login`);
+                  }} />
                </div>
             </header>
             <div className="content-wrap">
