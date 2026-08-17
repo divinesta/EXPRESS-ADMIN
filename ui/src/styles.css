@@ -89,9 +89,9 @@
    --border-strong: #40575c;
    --sidebar: #070b0c;
    --sidebar-hover: #172125;
-   --action-background: #071012;
-   --action-hover: #18252a;
-   --on-action: #f7fbfc;
+   --action-background: var(--accent-active);
+   --action-hover: color-mix(in srgb, var(--accent-active) 84%, var(--surface-canvas));
+   --on-action: var(--on-accent);
    --table-row-hover: #19262a;
    --table-row-hover-text: #f5f8f8;
    --table-row-selected: #152025;
