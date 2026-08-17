@@ -5,6 +5,7 @@ node_modules
 out
 dist
 site-dist
+public
 !ui/dist/
 !ui/dist/**
 *.tgz
