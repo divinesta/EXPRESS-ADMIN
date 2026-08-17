@@ -3,6 +3,5 @@
   "framework": null,
   "installCommand": "bun install --frozen-lockfile",
   "buildCommand": "bun run build:site",
-  "outputDirectory": "public",
   "cleanUrls": true
 }
