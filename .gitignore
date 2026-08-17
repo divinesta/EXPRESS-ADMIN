@@ -5,7 +5,6 @@ node_modules
 out
 dist
 site-dist
-public
 .vercel
 !ui/dist/
 !ui/dist/**
