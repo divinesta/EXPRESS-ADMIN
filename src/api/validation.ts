@@ -100,10 +100,24 @@ function isJsonValue(value: unknown, depth = 0): boolean {
 
 /** Ensure Prisma never turns a user omission into an opaque 500 response. */
 export function assertRequiredCreateFields(meta: AdminModelMeta, config: ModelConfig, adminUser: AdminUser, data: Record<string, unknown>): void {
-   for (const field of getWritableFields(meta, config)) {
-      if (!isFieldWritable(field, config, adminUser) || !field.isRequired || field.defaultValue !== null) continue;
+   for (const field of meta.fields) {
+      if (field.type === "relation" || field.isList || field.isReadOnly || !field.isRequired || field.defaultValue !== null) continue;
       if (data[field.name] === undefined) throw new RequestValidationError(`Field "${field.name}" is required.`);
    }
+}
+
+/** Validate trusted hook output without applying caller permissions or visibility. */
+export function validateHookPayload(meta: AdminModelMeta, body: unknown): Record<string, unknown> {
+   if (!isPlainObject(body)) throw new RequestValidationError("Hook output must be a JSON object.");
+   const fieldsByName = new Map(meta.fields.filter((field) => field.type !== "relation" && !field.isList && !field.isReadOnly).map((field) => [field.name, field]));
+   const data: Record<string, unknown> = {};
+   for (const [fieldName, value] of Object.entries(body)) {
+      const field = fieldsByName.get(fieldName);
+      if (!field) throw new RequestValidationError(`Hook output field "${fieldName}" cannot be written.`);
+      assertFieldValue(field, value);
+      data[fieldName] = value;
+   }
+   return data;
 }
 
 /**

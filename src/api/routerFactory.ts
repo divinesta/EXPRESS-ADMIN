@@ -7,7 +7,7 @@ import { buildListWhere, parseListQuery } from "./listQuery.js";
 import { assertSelectedRelationsAreVisible, buildListRecordSelect, buildRecordSelect } from "./recordSelection.js";
 import { authorizeModelOperation, getRecordId, getRegisteredModel, route } from "./routeSupport.js";
 import { applyCreateScope, assertScopeFieldsUnchanged, buildScopedRecordWhere, collectScopeFieldNames, resolveScope } from "./scope.js";
-import { assertRequiredCreateFields, RequestValidationError, validateWritePayload } from "./validation.js";
+import { assertRequiredCreateFields, RequestValidationError, validateHookPayload, validateWritePayload } from "./validation.js";
 
 /** The subset of a Prisma delegate used by scalar CRUD routes. */
 interface PrismaModelDelegate {
@@ -88,7 +88,7 @@ export function createCrudRouter(models: Map<string, FullRegisteredModel>, prism
          // Scope values are trusted server data. Remove them before validating
          // hook output so a deliberately hidden tenant key can still be
          // injected by applyCreateScope, while a hook cannot overwrite it.
-         data = validateWritePayload(model.meta, model.raw, adminUser, Object.fromEntries(Object.entries(hookData).filter(([fieldName]) => !scopeFieldNames.has(fieldName))));
+         data = validateHookPayload(model.meta, Object.fromEntries(Object.entries(hookData).filter(([fieldName]) => !scopeFieldNames.has(fieldName))));
          data = applyCreateScope(data, scope);
          assertRequiredCreateFields(model.meta, model.raw, adminUser, data);
          await assertSelectedRelationsAreVisible(data, model, models, prisma, adminUser);
@@ -118,7 +118,7 @@ export function createCrudRouter(models: Map<string, FullRegisteredModel>, prism
       assertScopeRelationsUnchanged(data, model, scope);
       await assertSelectedRelationsAreVisible(data, model, models, prisma, adminUser);
       if (model.raw.beforeUpdate) {
-         data = validateWritePayload(model.meta, model.raw, adminUser, await model.raw.beforeUpdate(String(id), data));
+         data = validateHookPayload(model.meta, await model.raw.beforeUpdate(String(id), data));
          assertScopeFieldsUnchanged(data, scope);
          assertScopeRelationsUnchanged(data, model, scope);
          await assertSelectedRelationsAreVisible(data, model, models, prisma, adminUser);

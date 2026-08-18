@@ -2,6 +2,16 @@
 
 All notable changes to Prisma Express Admin are documented here.
 
+## Unreleased
+
+### Security
+
+- Production registrations now require explicit `permissions`; list payloads
+  return only configured columns, and common privilege fields are protected by default.
+- Nested scope fields and scoped foreign keys cannot be changed through hooks or writes.
+- Built-in cookie mutations enforce same-origin requests and admin responses
+  prevent framing and caching.
+
 ## 0.5.0 - 17-08-26
 
 ### Security

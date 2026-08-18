@@ -75,20 +75,17 @@ export function createActionRouter(models: Map<string, FullRegisteredModel>, pri
          if (ids.length !== requestedIds.length) throw new RequestValidationError("One or more selected records are unavailable.");
 
          if (isDeleteAction) {
+            const deletedIds: Array<string | number> = [];
             for (const id of ids) {
                if (model.raw.beforeDelete) await model.raw.beforeDelete(String(id));
-            }
-            const result = await delegate.deleteMany({ where });
-            if (result.count !== ids.length) {
-               await writeAuditSafely(audit, adminUser, { type: "delete", modelName: model.meta.name, recordIds: ids, metadata: { requestedCount: ids.length, deletedCount: result.count } });
-               res.json({ message: `Deleted ${result.count} ${result.count === 1 ? "record" : "records"}; some records changed before deletion.` });
-               return;
-            }
-            for (const id of ids) {
+               const result = await delegate.deleteMany({ where: { AND: [scope, { [model.meta.idField]: id }] } });
+               if (result.count !== 1) continue;
+               deletedIds.push(id);
                if (model.raw.afterDelete) await runPostCommit("afterDelete", () => model.raw.afterDelete!(String(id)));
             }
-            await writeAuditSafely(audit, adminUser, { type: "delete", modelName: model.meta.name, recordIds: ids });
-            res.json({ message: `Deleted ${ids.length} ${ids.length === 1 ? "record" : "records"}.` });
+            if (deletedIds.length > 0) await writeAuditSafely(audit, adminUser, { type: "delete", modelName: model.meta.name, recordIds: deletedIds });
+            const partial = deletedIds.length !== ids.length;
+            res.json({ message: partial ? `Deleted ${deletedIds.length} ${deletedIds.length === 1 ? "record" : "records"}; some records changed before deletion.` : `Deleted ${deletedIds.length} ${deletedIds.length === 1 ? "record" : "records"}.` });
             return;
          }
 

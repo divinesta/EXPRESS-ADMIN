@@ -93,6 +93,10 @@ admin.register("User", {
   searchFields: ["email", "fullName"],
   scope: async (adminUser) =>
     adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" },
+  permissions: {
+    list: ["SUPER_ADMIN", "ADMIN"], view: ["SUPER_ADMIN", "ADMIN"],
+    create: ["SUPER_ADMIN", "ADMIN"], update: ["SUPER_ADMIN", "ADMIN"], delete: ["SUPER_ADMIN"],
+  },
 });
 ```
 
@@ -110,9 +114,9 @@ admin.register("Post", {
       name: "publish_selected",
       label: "Publish selected posts",
       allowedRoles: ["SUPER_ADMIN", "ADMIN"],
-      handler: async ({ ids, prisma }) => {
+      handler: async ({ prisma, where }) => {
         const result = await prisma.post.updateMany({
-          where: { id: { in: ids.map(String) } },
+          where,
           data: { published: true },
         });
         return { message: `Published ${result.count} posts.` };
@@ -216,7 +220,7 @@ permissions: {
 },
 ```
 
-Omitted keys allow **every authenticated** admin. `delete: []` denies everyone except `isSuperAdmin`. Super-admin skips these lists; it does **not** skip `scope`. See [Permissions](/guide/permissions).
+In production, each registration must include `permissions`. Within that object, omitted read keys allow authenticated administrators, while omitted write keys deny access. `delete: []` denies everyone except `isSuperAdmin`. Super-admin skips these lists; it does **not** skip `scope`. See [Permissions](/guide/permissions).
 
 ### `actions` — bulk verbs on the list
 
@@ -226,9 +230,9 @@ actions: [
     name: "publish_selected",
     label: "Publish selected posts",
     allowedRoles: ["SUPER_ADMIN", "ADMIN"],
-    handler: async ({ ids, prisma }) => {
+    handler: async ({ prisma, where }) => {
       const result = await prisma.post.updateMany({
-        where: { id: { in: ids.map(String) } },
+        where,
         data: { published: true },
       });
       return { message: `Published ${result.count} posts.` };
@@ -237,7 +241,7 @@ actions: [
 ];
 ```
 
-`name` is the URL segment. `label` is the button. `ids` are already checked against `scope` — if any id is foreign, the action does not run. Keep the same tenant filter in your `updateMany`. See [Custom actions](/guide/actions).
+`name` is the URL segment. `label` is the button. `where` contains the scope and selected IDs; use it for every action mutation. See [Custom actions](/guide/actions).
 
 ### Hooks — mutate or block a write
 

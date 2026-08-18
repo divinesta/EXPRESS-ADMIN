@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { hasModelPermission, hasRegisteredActionPermission } from "../../src/auth/permissions.ts";
 import { assertScopeFieldsUnchanged, buildScopedRecordWhere, resolveScope } from "../../src/api/scope.ts";
-import { RequestValidationError, isFieldWritable, validateWritePayload } from "../../src/api/validation.ts";
+import { assertRequiredCreateFields, RequestValidationError, isFieldWritable, validateHookPayload, validateWritePayload } from "../../src/api/validation.ts";
 import type { AdminModelMeta, AdminUser, ModelConfig } from "../../src/core/types.ts";
 
 const adminUser: AdminUser = {
@@ -73,6 +73,11 @@ describe("API safety foundation", () => {
       expect(isFieldWritable(role, config, adminUser)).toBe(false);
       expect(isFieldWritable(role, config, { ...adminUser, role: "SUPER_ADMIN", isSuperAdmin: true })).toBe(true);
       expect(() => validateWritePayload(userMeta, config, adminUser, { role: "ADMIN" })).toThrow(RequestValidationError);
+   });
+
+   test("requires server-filled fields and permits trusted hook output", () => {
+      expect(() => assertRequiredCreateFields(userMeta, {}, adminUser, { email: "admin@example.com" })).toThrow('Field "role" is required.');
+      expect(validateHookPayload(userMeta, { email: "admin@example.com", role: "ADMIN", passwordHash: "derived" })).toEqual({ email: "admin@example.com", role: "ADMIN", passwordHash: "derived" });
    });
 
    test("accepts either explicit custom action allowlist", () => {

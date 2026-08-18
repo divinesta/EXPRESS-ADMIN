@@ -58,7 +58,7 @@ describe("custom actions", () => {
             findMany: async () => [{ id: "post-a" }, { id: "post-b" }],
             deleteMany: async ({ where }: { where: unknown }) => {
                deletedWhere.push(where);
-               return { count: 2 };
+               return { count: 1 };
             },
          },
       } as PrismaLike;
@@ -68,7 +68,10 @@ describe("custom actions", () => {
       expect(response).toEqual({ status: 200, body: { message: "Deleted 2 records." } });
       expect(beforeDelete).toEqual(["post-a", "post-b"]);
       expect(afterDelete).toEqual(["post-a", "post-b"]);
-      expect(deletedWhere).toEqual([{ AND: [{ institutionId: "institution-a" }, { id: { in: ["post-a", "post-b"] } }] }]);
+      expect(deletedWhere).toEqual([
+         { AND: [{ institutionId: "institution-a" }, { id: "post-a" }] },
+         { AND: [{ institutionId: "institution-a" }, { id: "post-b" }] },
+      ]);
       expect(auditEvents[0]).toMatchObject({ type: "delete", recordIds: ["post-a", "post-b"] });
    });
 
@@ -110,6 +113,28 @@ describe("custom actions", () => {
       expect(actionWhere).toEqual({ AND: [{ institutionId: "institution-a" }, { id: { in: ["post-a", "post-b"] } }] });
       expect(auditEvents).toHaveLength(1);
       expect(auditEvents[0]).toMatchObject({ type: "action", modelName: "Post", recordIds: ["post-a", "post-b"], metadata: { action: "publish_selected" } });
+   });
+
+   test("runs post-delete hooks and audit only for records actually deleted during a race", async () => {
+      const afterDelete: string[] = [];
+      const auditEvents: Array<{ recordIds: Array<string | number> }> = [];
+      const model: FullRegisteredModel = {
+         meta: postMeta,
+         raw: { afterDelete: async (id) => void afterDelete.push(id) },
+         resolved: { listDisplay: ["title"], listFilter: [], searchFields: ["title"], defaultSort: { field: "id", direction: "asc" }, perPage: 25, permissions: { delete: ["ADMIN"] } },
+      };
+      const prisma = {
+         post: {
+            findMany: async () => [{ id: "post-a" }, { id: "post-b" }],
+            deleteMany: async ({ where }: { where: { AND: Array<Record<string, unknown>> } }) => ({ count: where.AND[1]?.id === "post-a" ? 1 : 0 }),
+         },
+      } as PrismaLike;
+      const router = createActionRouter(new Map([["posts", model]]), prisma, { write: async (event) => { auditEvents.push(event); } });
+
+      const response = await dispatch(router, { ids: ["post-a", "post-b"] }, "delete_selected");
+      expect(response).toEqual({ status: 200, body: { message: "Deleted 1 record; some records changed before deletion." } });
+      expect(afterDelete).toEqual(["post-a"]);
+      expect(auditEvents[0]?.recordIds).toEqual(["post-a"]);
    });
 
    test("does not execute when a selected record falls outside scope", async () => {
