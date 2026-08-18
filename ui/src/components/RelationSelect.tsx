@@ -9,7 +9,7 @@ export type RelationSelectModel = {
    displayField: string;
 };
 
-export const RelationSelect = ({ label, model, value, selectedLabel, error, onChange }: { label: string; model: RelationSelectModel; value: string; selectedLabel?: string; error?: string; onChange: (value: string) => void }) => {
+export const RelationSelect = ({ label, model, value, selectedLabel, error, onChange, readOnly = false }: { label: string; model: RelationSelectModel; value: string; selectedLabel?: string; error?: string; onChange: (value: string) => void; readOnly?: boolean }) => {
    const inputId = useId();
    const listboxId = useId();
    const [query, setQuery] = useState("");
@@ -28,7 +28,7 @@ export const RelationSelect = ({ label, model, value, selectedLabel, error, onCh
 
    useEffect(() => {
       const search = query.trim();
-      if (search.length < 2) {
+      if (readOnly || search.length < 2) {
          setRecords([]);
          setStatus("idle");
          return;
@@ -61,7 +61,7 @@ export const RelationSelect = ({ label, model, value, selectedLabel, error, onCh
          window.clearTimeout(timeout);
          controller.abort();
       };
-   }, [model.pluralName, query]);
+   }, [model.pluralName, query, readOnly]);
 
    const selectRecord = (record: RecordData) => {
       onChange(String(record[model.idField]));
@@ -85,9 +85,10 @@ export const RelationSelect = ({ label, model, value, selectedLabel, error, onCh
                aria-expanded={records.length > 0}
                placeholder={`Search ${model.pluralName} by ${model.displayField}`}
                value={query}
+               readOnly={readOnly}
                onChange={(event) => setQuery(event.target.value)}
             />
-            {value && <button className="relation-clear" type="button" onClick={() => { onChange(""); setQuery(""); setSelectionLabel(""); }}>Clear</button>}
+            {value && !readOnly && <button className="relation-clear" type="button" onClick={() => { onChange(""); setQuery(""); setSelectionLabel(""); }}>Clear</button>}
          </div>
          <span className="relation-help" id={`${inputId}-help`}>
             {value ? `Selected: ${selectionLabel || selectedLabel || value}` : "Type at least two characters, then choose a result."}
@@ -95,7 +96,7 @@ export const RelationSelect = ({ label, model, value, selectedLabel, error, onCh
          {status === "loading" && <span className="relation-help">Searching…</span>}
          {status === "error" && <span className="form-error">{message}</span>}
          {status === "ready" && records.length === 0 && <span className="relation-help">No matching records found.</span>}
-         {records.length > 0 && (
+         {!readOnly && records.length > 0 && (
             <ul className="relation-results" id={listboxId} role="listbox" aria-label={`${label} search results`}>
                {records.map((record) => {
                   const id = String(record[model.idField]);

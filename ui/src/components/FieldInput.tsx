@@ -5,7 +5,7 @@ import { RelationSelect, type RelationSelectModel } from "./RelationSelect";
 export const FieldInput = ({ field, value, error, relationModel, relationLabel, onChange, readOnly = false }: { field: Field; value: string | boolean; error?: string; relationModel?: RelationSelectModel; relationLabel?: string; onChange: (value: string | boolean) => void; readOnly?: boolean }) => {
    const id = `field-${field.name}`;
    if (relationModel) {
-      return <RelationSelect label={`${relationModel.label}${field.isRequired ? " *" : ""}`} model={relationModel} value={String(value)} selectedLabel={relationLabel} error={error} onChange={onChange} />;
+      return <RelationSelect label={`${relationModel.label}${field.isRequired ? " *" : ""}`} model={relationModel} value={String(value)} selectedLabel={relationLabel} error={error} readOnly={readOnly} onChange={onChange} />;
    }
 
    const inputType =

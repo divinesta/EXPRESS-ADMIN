@@ -63,6 +63,7 @@ export const CreateView = ({ schema, mode }: { schema: Schema; mode: "create" | 
       );
    const submit = async (event: FormEvent) => {
       event.preventDefault();
+      if (mode === "view") return;
       form.setError("");
       form.setFieldErrors({});
       const missingRequiredRelation = fields.find((field) => relationModelsByForeignKey.has(field.name) && field.isRequired && form.values[field.name] === "");
@@ -72,7 +73,6 @@ export const CreateView = ({ schema, mode }: { schema: Schema; mode: "create" | 
          return;
       }
       form.setStatus("saving");
-      if (mode === "view") return;
       const payload: Record<string, unknown> = {};
       fields.forEach((field) => {
          const value = form.values[field.name];
