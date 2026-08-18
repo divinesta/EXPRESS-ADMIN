@@ -18,7 +18,7 @@ export const App = () => {
       <ThemeProvider>
          {isLoginRoute && <LoginPage />}
          {!isLoginRoute && state.status === "loading" && <FullPageState eyebrow="Prisma Admin" title="Loading your workspace" detail="Reading the models and permissions available to you…" busy />}
-         {!isLoginRoute && state.status === "unauthorized" && <FullPageState eyebrow="Access required" title="You’re not signed in" detail="Your sign-in session has expired. Return to the login page to continue." />}
+         {!isLoginRoute && state.status === "unauthorized" && <FullPageState eyebrow="Access required" title="You’re not signed in" detail="Your sign-in session has expired." action={{ label: "Return to login", href: joinAdminPath(adminBasePath, "/login") }} />}
          {!isLoginRoute && state.status === "error" && <FullPageState eyebrow="Unable to connect" title="The admin is unavailable" detail={state.message} />}
          {!isLoginRoute && state.status === "ready" && (
             <BrowserRouter basename={adminBasePath}>
@@ -117,6 +117,7 @@ const AdminShell = ({ schema }: { schema: Schema }) => {
                   <Route path="/" element={<Dashboard schema={schema} />} />
                   <Route path="/:model/new" element={<CreateView schema={schema} mode="create" />} />
                   <Route path="/:model/:id/edit" element={<CreateView schema={schema} mode="edit" />} />
+                  <Route path="/:model/:id" element={<CreateView schema={schema} mode="view" />} />
                   <Route path="/:model" element={<ListView schema={schema} />} />
                   <Route path="*" element={<NotFound />} />
                </Routes>

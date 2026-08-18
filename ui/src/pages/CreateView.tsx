@@ -8,11 +8,11 @@ import type { Schema } from "../types";
 import { extractFieldName, fieldLabel, toDateInput } from "../utils/format";
 import { writableFields } from "../utils/fieldResolver";
 
-export const CreateView = ({ schema, mode }: { schema: Schema; mode: "create" | "edit" }) => {
+export const CreateView = ({ schema, mode }: { schema: Schema; mode: "create" | "edit" | "view" }) => {
    const { model: modelPath, id } = useParams();
    const navigate = useNavigate();
    const model = schema.models.find((candidate) => candidate.meta.pluralName === modelPath);
-   const fields = model ? writableFields(model.meta.fields) : [];
+   const fields = model ? mode === "view" ? model.meta.fields.filter((field) => field.type !== "relation" && !field.isList) : writableFields(model.meta.fields) : [];
    const relationModelsByForeignKey = new Map(
       model?.meta.fields.flatMap((field) => {
          const relation = field.relation;
@@ -25,7 +25,7 @@ export const CreateView = ({ schema, mode }: { schema: Schema; mode: "create" | 
    const form = useFormModel(fields);
    const [relationLabels, setRelationLabels] = useState<Record<string, string>>({});
    useEffect(() => {
-      if (mode !== "edit" || !model || !id) return;
+      if (mode === "create" || !model || !id) return;
       fetchRecord(model.meta.pluralName, id)
          .then((record) => {
             const next: Record<string, string | boolean> = {};
@@ -54,6 +54,7 @@ export const CreateView = ({ schema, mode }: { schema: Schema; mode: "create" | 
    if (!model) return <NotFound />;
    if (mode === "create" && !model.config.permissions.create) return <NotFound />;
    if (mode === "edit" && !model.config.permissions.update) return <NotFound />;
+   if (mode === "view" && !model.config.permissions.view) return <NotFound />;
    if (form.status === "loading")
       return (
          <div className="table-card table-state">
@@ -71,6 +72,7 @@ export const CreateView = ({ schema, mode }: { schema: Schema; mode: "create" | 
          return;
       }
       form.setStatus("saving");
+      if (mode === "view") return;
       const payload: Record<string, unknown> = {};
       fields.forEach((field) => {
          const value = form.values[field.name];
@@ -78,7 +80,7 @@ export const CreateView = ({ schema, mode }: { schema: Schema; mode: "create" | 
             if (relationModelsByForeignKey.has(field.name)) payload[field.name] = null;
             return;
          }
-         payload[field.name] = field.type === "number" ? Number(value) : field.type === "datetime" && typeof value === "string" ? new Date(value).toISOString() : value;
+         payload[field.name] = field.type === "number" && field.prismaType !== "Decimal" && field.prismaType !== "BigInt" ? Number(value) : field.type === "datetime" && typeof value === "string" ? new Date(value).toISOString() : value;
       });
       const url = mode === "create" ? `${apiBase}/${model.meta.pluralName}` : `${apiBase}/${model.meta.pluralName}/${encodeURIComponent(id ?? "")}`;
       const response = await fetch(url, {
@@ -102,9 +104,9 @@ export const CreateView = ({ schema, mode }: { schema: Schema; mode: "create" | 
       <section className="page-section">
          <div className="page-heading">
             <div>
-               <div className="eyebrow">{mode === "create" ? "New record" : "Edit record"}</div>
-               <h1>{mode === "create" ? `Create ${model.meta.name}` : `Edit ${model.meta.name}`}</h1>
-               <p>Only scalar fields are editable in this first release.</p>
+               <div className="eyebrow">{mode === "create" ? "New record" : mode === "view" ? "Record detail" : "Edit record"}</div>
+               <h1>{mode === "create" ? `Create ${model.meta.name}` : mode === "view" ? model.meta.name : `Edit ${model.meta.name}`}</h1>
+               <p>{mode === "view" ? "Read-only record details." : "Only scalar fields are editable in this first release."}</p>
             </div>
          </div>
          {form.error && <ApiNotice message={form.error} />}
@@ -118,6 +120,7 @@ export const CreateView = ({ schema, mode }: { schema: Schema; mode: "create" | 
                      error={form.fieldErrors[field.name]}
                      relationModel={relationModelsByForeignKey.get(field.name)}
                      relationLabel={relationLabels[field.name]}
+                     readOnly={mode === "view"}
                      onChange={(value) => {
                         setRelationLabels((current) => ({ ...current, [field.name]: "" }));
                         form.setValues((current) => ({ ...current, [field.name]: value }));
@@ -126,12 +129,8 @@ export const CreateView = ({ schema, mode }: { schema: Schema; mode: "create" | 
                ))}
             </div>
             <div className="form-actions">
-               <button className="secondary-button" type="button" onClick={() => navigate(mode === "edit" ? `/${model.meta.pluralName}/${id}` : `/${model.meta.pluralName}`)}>
-                  Cancel
-               </button>
-               <button className="primary-button" disabled={form.status === "saving"} type="submit">
-                  {form.status === "saving" ? "Saving…" : mode === "create" ? "Create record" : "Save changes"}
-               </button>
+               <button className="secondary-button" type="button" onClick={() => navigate(`/${model.meta.pluralName}`)}>{mode === "view" ? "Back to list" : "Cancel"}</button>
+               {mode !== "view" && <button className="primary-button" disabled={form.status === "saving"} type="submit">{form.status === "saving" ? "Saving…" : mode === "create" ? "Create record" : "Save changes"}</button>}
             </div>
          </form>
       </section>

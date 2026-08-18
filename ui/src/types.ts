@@ -1,6 +1,7 @@
 export type Field = {
   name: string;
   type: string;
+  prismaType?: string;
   isId: boolean;
   isRequired: boolean;
   isReadOnly: boolean;

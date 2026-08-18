@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, Plus, Search, SlidersHorizontal } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { NavLink, useNavigate, useParams } from "react-router-dom";
 import { ApiNotice, NotFound } from "../components/Feedback";
 import { ActionBar } from "../components/ActionBar";
@@ -23,6 +23,11 @@ export const ListView = ({ schema }: { schema: Schema }) => {
    const data = useModelData(model, page, search, filters, sort, dir);
    const bulkActions = useBulkActions(model);
    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+   useEffect(() => {
+      setSearchDraft(""); setSearch(""); setPage(1);
+      setSort(model?.config.defaultSort.field ?? "createdAt"); setDir(model?.config.defaultSort.direction ?? "desc");
+      resetFilters(); setSelectedIds(new Set());
+   }, [modelPath]);
    if (!model || !model.config.permissions.list) return <NotFound />;
    const listFields = model.config.listDisplay.map((name) => model.meta.fields.find((field) => field.name === name)).filter((field): field is Field => Boolean(field));
    const filterFields = model.config.listFilter.map((name) => model.meta.fields.find((field) => field.name === name)).filter((field): field is Field => Boolean(field));
@@ -134,7 +139,7 @@ export const ListView = ({ schema }: { schema: Schema }) => {
                   records={data.records}
                   fields={listFields}
                   idField={model.meta.idField}
-                  canEdit={model.config.permissions.view && model.config.permissions.update}
+                  canEdit={model.config.permissions.view}
                   rowStart={(page - 1) * model.config.perPage}
                   selectedIds={model.config.actions.length > 0 ? selectedIds : undefined}
                   sort={sort}
@@ -159,7 +164,7 @@ export const ListView = ({ schema }: { schema: Schema }) => {
                         return next;
                      })
                   }
-                  onOpen={(id) => navigate(`/${model.meta.pluralName}/${id}/edit`)}
+                  onOpen={(id) => navigate(model.config.permissions.update ? `/${model.meta.pluralName}/${id}/edit` : `/${model.meta.pluralName}/${id}`)}
                />
                <div className="table-footer">
                   <span>
