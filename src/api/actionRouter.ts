@@ -79,18 +79,25 @@ export function createActionRouter(models: Map<string, FullRegisteredModel>, pri
                if (model.raw.beforeDelete) await model.raw.beforeDelete(String(id));
             }
             const result = await delegate.deleteMany({ where });
-            if (result.count !== ids.length) throw new RequestValidationError("One or more selected records are unavailable.");
-            for (const id of ids) {
-               if (model.raw.afterDelete) await model.raw.afterDelete(String(id));
+            if (result.count !== ids.length) {
+               await writeAuditSafely(audit, adminUser, { type: "delete", modelName: model.meta.name, recordIds: ids, metadata: { requestedCount: ids.length, deletedCount: result.count } });
+               res.json({ message: `Deleted ${result.count} ${result.count === 1 ? "record" : "records"}; some records changed before deletion.` });
+               return;
             }
-            await writeAuditEvent(audit, adminUser, { type: "delete", modelName: model.meta.name, recordIds: ids });
+            for (const id of ids) {
+               if (model.raw.afterDelete) await runPostCommit("afterDelete", () => model.raw.afterDelete!(String(id)));
+            }
+            await writeAuditSafely(audit, adminUser, { type: "delete", modelName: model.meta.name, recordIds: ids });
             res.json({ message: `Deleted ${ids.length} ${ids.length === 1 ? "record" : "records"}.` });
             return;
          }
 
          if (!action) throw new Error(`Action "${String(actionName)}" was not found.`);
-         const result = await action.handler({ ids, adminUser, prisma });
-         await writeAuditEvent(audit, adminUser, {
+         // `where` must be used for every mutation in a custom action. It
+         // contains both the scope and selected IDs, so it remains safe if a
+         // record changes between the initial selection and the mutation.
+         const result = await action.handler({ ids, adminUser, prisma, where });
+         await writeAuditSafely(audit, adminUser, {
             type: "action",
             modelName: model.meta.name,
             recordIds: ids,
@@ -100,4 +107,13 @@ export function createActionRouter(models: Map<string, FullRegisteredModel>, pri
    }));
 
    return router;
+}
+
+async function runPostCommit(name: string, task: () => Promise<void>): Promise<void> {
+   try { await task(); }
+   catch { console.error(`[prisma-express-admin] ${name} failed after the database write committed.`); }
+}
+
+async function writeAuditSafely(audit: AuditConfig | undefined, actor: import("../core/types.js").AdminUser, event: Parameters<typeof writeAuditEvent>[2]): Promise<void> {
+   await runPostCommit("audit.write", () => writeAuditEvent(audit, actor, event));
 }

@@ -81,7 +81,6 @@
     "prisma": "~7.5.0"
   },
   "dependencies": {
-    "@prisma/internals": "~7.5.0",
-    "prisma-express-admin": "^0.2.1"
+    "@prisma/internals": "~7.5.0"
   }
 }

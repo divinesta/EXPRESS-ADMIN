@@ -11,9 +11,9 @@ admin.register("Post", {
       name: "publish_selected",
       label: "Publish selected posts",
       allowedRoles: ["SUPER_ADMIN", "ADMIN"],
-      handler: async ({ ids, prisma }) => {
+      handler: async ({ prisma, where }) => {
         const result = await prisma.post.updateMany({
-          where: { id: { in: ids.map(String) } },
+          where,
           data: { published: true },
         });
         return { message: `Published ${result.count} posts.` };
@@ -32,6 +32,7 @@ The UI shows `label`. The route is `POST /admin/api/posts/actions/publish_select
   ids: Array<string | number>; // only rows that passed scope
   adminUser: AdminUser;
   prisma: PrismaLike;
+  where: Record<string, unknown>; // scope AND selected IDs; use for mutations
 }
 ```
 
@@ -59,6 +60,6 @@ The schema endpoint only lists actions this person may run. Hidden in the UI is 
 
 The built-in delete action uses the model's `delete` permission; it cannot be changed through `permissions.actions`.
 
-## Do the work yourself
+## Do the work safely
 
-The library does not interpret the action. If the handler updates rows, **you** should include the same tenant filter you use in `scope`. The pre-check guarantees the ids were in scope at read time; your `updateMany` should not widen that.
+Use the supplied `where` in every mutation. It contains the scope and selected IDs, so your action remains tenant-safe at mutation time.

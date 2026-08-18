@@ -49,7 +49,7 @@ const DEFAULT_PER_PAGE = 50;
  * Developers commonly want newest records first in a list view.
  *
  * ── perPage ───────────────────────────────────────────────────────────────
- * Default: 25. The developer can override this per model.
+ * Default: 50. The developer can override this per model.
  *
  * ── permissions ───────────────────────────────────────────────────────────
  * Default: authenticated admins may list and view. Create, update, delete,
@@ -344,6 +344,24 @@ export class AdminRegistry {
             }
          }
 
+         if (rawConfig.perPage !== undefined && (!Number.isSafeInteger(rawConfig.perPage) || rawConfig.perPage < 1 || rawConfig.perPage > 200)) {
+            throw new Error(`[prisma-express-admin] admin.register("${modelName}") config.perPage must be an integer from 1 to 200.`);
+         }
+
+         if (rawConfig.defaultSort) {
+            const sortField = meta.fields.find((field) => field.name === rawConfig.defaultSort?.field);
+            if (!sortField || sortField.type === "relation") throw new Error(`[prisma-express-admin] admin.register("${modelName}") config.defaultSort.field must be a scalar field on the model.`);
+            if (rawConfig.defaultSort.direction !== "asc" && rawConfig.defaultSort.direction !== "desc") throw new Error(`[prisma-express-admin] admin.register("${modelName}") config.defaultSort.direction must be "asc" or "desc".`);
+         }
+
+         if (rawConfig.pluralName !== undefined && !/^[a-z][a-z0-9-]*$/i.test(rawConfig.pluralName)) {
+            throw new Error(`[prisma-express-admin] admin.register("${modelName}") config.pluralName must contain only letters, numbers, and hyphens.`);
+         }
+
+         if (process.env.NODE_ENV === "production" && rawConfig.permissions === undefined) {
+            throw new Error(`[prisma-express-admin] admin.register("${modelName}") requires explicit permissions in production.`);
+         }
+
          // Guard: custom actions must have stable, URL-safe names and unique
          // identifiers. Failing at mount avoids discovering configuration
          // mistakes only when an administrator clicks an action in production.
@@ -389,6 +407,10 @@ export class AdminRegistry {
 
          // ── Resolve the config — fill in all defaults ─────────────
          const resolved = resolveConfig(resolvedMeta, rawConfig);
+
+         if ([...this.models.values()].some((entry) => entry.meta.pluralName === resolvedMeta.pluralName)) {
+            throw new Error(`[prisma-express-admin] admin.register("${modelName}") duplicates the pluralName "${resolvedMeta.pluralName}" of another registered model.`);
+         }
 
          // ── Store the fully resolved entry ─────────────────────────
          this.models.set(modelName, {

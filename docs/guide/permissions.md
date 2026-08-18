@@ -27,13 +27,13 @@ Operations: `list`, `view`, `create`, `update`, `delete`, plus named actions.
 
 ## The four rules people miss
 
-1. **Omitted reads** — `list` and `view` are available to an authenticated admin unless you restrict them.
+1. **Production configuration** — every model must declare `permissions` when `NODE_ENV=production`; development keeps the authenticated-read default for local setup.
 2. **Omitted writes** — `create`, `update`, `delete`, and custom actions are denied unless you explicitly allow a role.
 3. **Empty list** — `delete: []` denies everyone except `isSuperAdmin`.
 4. **Super-admin** — `isSuperAdmin: true` bypasses these lists. It does not bypass `scope()`.
 
 ```ts
-// Anyone signed in can read User, but nobody except a super-admin can write it.
+// Development only: anyone signed in can read User, but nobody except a super-admin can write it.
 admin.register("User");
 
 // Allow ADMIN to create and update, but reserve deletion for SUPER_ADMIN.
@@ -57,6 +57,7 @@ admin.register("User", {
 ```
 
 The field remains visible in lists but is excluded from edit forms for other roles. The API enforces this too.
+`role`, `isActive`, and `isSuperAdmin` additionally default to super-admin-only writes unless you explicitly configure `writeRoles`.
 
 ## How the UI uses this
 

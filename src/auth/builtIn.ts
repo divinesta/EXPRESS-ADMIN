@@ -40,7 +40,10 @@ const readCookie = (req: Request, name: string): string | null => {
    if (!header) return null;
    for (const part of header.split(";")) {
       const [key, ...value] = part.trim().split("=");
-      if (key === name) return decodeURIComponent(value.join("="));
+      if (key === name) {
+         try { return decodeURIComponent(value.join("=")); }
+         catch { return null; }
+      }
    }
    return null;
 };
@@ -105,6 +108,10 @@ export const createBuiltInAuthRouter = (prisma: PrismaLike, config: BuiltInAuthC
 
       if (req.method === "POST" && req.path === "/login") {
          try {
+            if (!hasSameOrigin(req)) {
+               res.status(403).json({ error: "Cross-origin authentication requests are not allowed.", code: "ORIGIN_FORBIDDEN" });
+               return;
+            }
             const body = req.body as { identifier?: unknown; password?: unknown };
             const identifier = typeof body?.identifier === "string" ? body.identifier.trim() : "";
             const password = typeof body?.password === "string" ? body.password : "";
@@ -142,6 +149,10 @@ export const createBuiltInAuthRouter = (prisma: PrismaLike, config: BuiltInAuthC
 
       if (req.method === "POST" && req.path === "/logout") {
          try {
+            if (!hasSameOrigin(req)) {
+               res.status(403).json({ error: "Cross-origin authentication requests are not allowed.", code: "ORIGIN_FORBIDDEN" });
+               return;
+            }
             const token = readCookie(req, sessionCookieName);
             if (token) await sessions.deleteMany({ where: { tokenHash: sessionHash(token) } });
             res.setHeader("Set-Cookie", clearSessionCookie(config, basePath));
@@ -156,6 +167,14 @@ export const createBuiltInAuthRouter = (prisma: PrismaLike, config: BuiltInAuthC
       next();
    };
 };
+
+/** Browser credential mutations must originate from the mounted application. */
+function hasSameOrigin(req: Request): boolean {
+   const origin = req.get("origin");
+   if (!origin) return true; // permits non-browser clients; SameSite remains the baseline.
+   try { return new URL(origin).host === req.get("host"); }
+   catch { return false; }
+}
 
 export const createBuiltInAuthenticationMiddleware = (prisma: PrismaLike, config: BuiltInAuthConfig): RequestHandler => async (req, res, next) => {
    try {

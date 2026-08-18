@@ -1,7 +1,7 @@
 import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
 const passwordPrefix = "scrypt";
 const derivedKeyLength = 64;
-const defaultParameters = { cost: 16_384, blockSize: 8, parallelism: 1 };
+const defaultParameters = { cost: 131_072, blockSize: 8, parallelism: 1 };
 const maximumParameters = { cost: 131_072, blockSize: 16, parallelism: 4 };
 
 type ScryptParameters = typeof defaultParameters;

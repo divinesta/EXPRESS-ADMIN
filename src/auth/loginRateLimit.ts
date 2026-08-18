@@ -52,6 +52,6 @@ export function createLoginRateLimiter(config: BuiltInAuthConfig): (req: Request
 
       const ipRetryAfter = consume(attemptsByIp, ip, now);
       if (ipRetryAfter !== null) return ipRetryAfter;
-      return consume(attemptsByIdentifier, `${ip}:${identifier.toLowerCase()}`, now);
+      return consume(attemptsByIdentifier, identifier.toLowerCase(), now);
    };
 }

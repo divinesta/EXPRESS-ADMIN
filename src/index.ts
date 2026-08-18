@@ -82,11 +82,20 @@ export function createAdmin(config: AdminConfig): Admin {
 
          const basePath = normalizeBasePath(config.basePath);
          if (isBuiltInAuth(config.auth)) {
+            if (process.env.NODE_ENV === "production" && config.auth.secureCookies === false) {
+               throw new Error("[prisma-express-admin] Built-in auth refuses secureCookies: false in production.");
+            }
             const protectedModels = new Set([config.auth.userModel ?? "ExpressAdminUser", config.auth.sessionModel ?? "ExpressAdminSession"]);
             const exposedModel = registry.getAll().find((model) => protectedModels.has(model.meta.name));
             if (exposedModel) throw new Error(`[prisma-express-admin] Built-in auth model "${exposedModel.meta.name}" cannot be registered in the admin panel.`);
          }
          const router = Router();
+
+         router.use((_req, res, next) => {
+            res.setHeader("X-Frame-Options", "DENY");
+            res.setHeader("Content-Security-Policy", "frame-ancestors 'none'");
+            next();
+         });
 
          // ── Step 2: Register routes ────────────────────────────
          router.use(json());
@@ -101,6 +110,19 @@ export function createAdmin(config: AdminConfig): Admin {
          router.use("/api", isBuiltInAuth(config.auth)
             ? createBuiltInAuthenticationMiddleware(config.prisma, config.auth)
             : createAuthenticationMiddleware(config.auth));
+         if (isBuiltInAuth(config.auth)) {
+            router.use("/api", (req, res, next) => {
+               if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method) && !isSameOriginMutation(req)) {
+                  res.status(403).json({ error: "Cross-origin requests are not allowed.", code: "ORIGIN_FORBIDDEN" });
+                  return;
+               }
+               next();
+            });
+         }
+         router.use("/api", (_req, res, next) => {
+            res.setHeader("Cache-Control", "private, no-store");
+            next();
+         });
 
          // Schema endpoint — GET /admin/api/schema
          // Returns all registered models + resolved config as JSON.
@@ -145,6 +167,13 @@ export function createAdmin(config: AdminConfig): Admin {
    return admin;
 }
 
+function isSameOriginMutation(req: import("express").Request): boolean {
+   const origin = req.get("origin");
+   if (!origin) return true;
+   try { return new URL(origin).host === req.get("host"); }
+   catch { return false; }
+}
+
 function normalizeBasePath(basePath = "/admin"): string {
    if (!basePath.startsWith("/")) throw new Error("[prisma-express-admin] basePath must start with '/'.");
    return basePath.length > 1 ? basePath.replace(/\/+$/, "") : basePath;
@@ -177,4 +206,5 @@ export type {
    PrismaLike,
 } from "./core/types.js";
 export { hashAdminPassword } from "./auth/builtIn.js";
+export { AdminApiError } from "./api/errors.js";
 export type { ResolvedModelConfig, FullRegisteredModel } from "./core/registry.js";

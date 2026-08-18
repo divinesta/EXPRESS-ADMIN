@@ -207,7 +207,7 @@ export interface AdminAction {
     * adminUser: the currently logged-in admin
     * prisma: the Prisma client instance (for DB operations)
     */
-   handler: (params: { ids: Array<string | number>; adminUser: AdminUser; prisma: PrismaLike }) => Promise<{ message: string }>;
+   handler: (params: { ids: Array<string | number>; adminUser: AdminUser; prisma: PrismaLike; where: Record<string, unknown> }) => Promise<{ message: string }>;
 
    /** Which roles can run this action. Either this or permissions.actions[name] is required. */
    allowedRoles?: string[];
@@ -272,7 +272,7 @@ export interface ModelConfig {
    /** Default sort order for the list */
    defaultSort?: { field: string; direction: "asc" | "desc" };
 
-   /** Number of records per page. Default: 25 */
+   /** Number of records per page. Default: 50 */
    perPage?: number;
 
    // ── Detail / Form view ─────────────────────────────────────
