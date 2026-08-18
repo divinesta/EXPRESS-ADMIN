@@ -99,4 +99,12 @@ describe("belongsTo relation selection", () => {
       expect(forbidden.body).toEqual({ error: "The selected User record is unavailable.", code: "VALIDATION_ERROR" });
       expect(createCalls).toBe(1);
    });
+
+   test("rejects a submitted FK when its related model is not registered", async () => {
+      const prisma = { post: { create: async () => ({ id: "new-post" }) } } as PrismaLike;
+      const router = createCrudRouter(new Map([["posts", model(postMeta)]]), prisma);
+      const response = await dispatch(router, { title: "Unsafe relation", authorId: "other-tenant-user" });
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({ error: 'Relation "author" cannot be changed because related model "User" is not registered.', code: "VALIDATION_ERROR" });
+   });
 });

@@ -35,7 +35,7 @@ admin.register("User", {
 ## Useful jobs
 
 - Hash a password (and keep `password` excluded from the schema)
-- Stamp fields `scope` cannot express (complex `OR` predicates)
+- Add derived values to fields that are already writable
 - Refuse to delete Linus
 - Fan out to email / queue after a successful write
 
@@ -50,4 +50,4 @@ Thrown errors become `500 INTERNAL_ERROR` unless you throw an `AdminApiError`. D
 5. `afterCreate`
 6. `audit.write` if configured
 
-If `beforeCreate` adds a key that is not writable, Prisma may still accept it — keep hooks conservative. Prefer fields that already exist on the model.
+Hook output is validated again. Hooks cannot add hidden, read-only, unauthorized, or nested-write fields, and simple scope equalities are re-applied after the hook.

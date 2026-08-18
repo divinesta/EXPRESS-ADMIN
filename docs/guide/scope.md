@@ -38,11 +38,11 @@ Simple equality scopes are written into new records:
 // The API adds tenantId: northwind
 ```
 
-If the client sends a conflicting `tenantId`, the request is `400`. Complex Prisma predicates (`{ OR: […] }`) cannot be turned into create data automatically — set those fields in `beforeCreate` or keep `scope` as equalities.
+If the client sends a conflicting `tenantId`, the request is `400`. Complex Prisma predicates cannot be turned into create data automatically, so models that administrators can create must use simple equality scopes.
 
 ## Update
 
-Fields that appear in the scope object cannot be changed through the admin. Ada cannot PATCH `tenantId` onto Contoso.
+Fields used anywhere in a scope predicate cannot be changed through the admin. This includes a related FK such as `orderId` when the scope contains `order: { tenantId: ... }`.
 
 ## Relations and actions
 

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { hasModelPermission, hasRegisteredActionPermission } from "../../src/auth/permissions.ts";
-import { buildScopedRecordWhere, resolveScope } from "../../src/api/scope.ts";
+import { assertScopeFieldsUnchanged, buildScopedRecordWhere, resolveScope } from "../../src/api/scope.ts";
 import { RequestValidationError, isFieldWritable, validateWritePayload } from "../../src/api/validation.ts";
 import type { AdminModelMeta, AdminUser, ModelConfig } from "../../src/core/types.ts";
 
@@ -45,6 +45,11 @@ describe("API safety foundation", () => {
       });
    });
 
+   test("locks scalar fields referenced inside nested scope predicates", () => {
+      const scope = { OR: [{ tenantId: "tenant-a" }, { order: { tenantId: "tenant-a" } }] };
+      expect(() => assertScopeFieldsUnchanged({ tenantId: "tenant-b" }, scope)).toThrow(RequestValidationError);
+   });
+
    test("rejects sensitive and unknown write fields", () => {
       const config: ModelConfig = {};
 
@@ -55,8 +60,9 @@ describe("API safety foundation", () => {
    test("accepts a valid scalar payload and rejects invalid enum values", () => {
       const config: ModelConfig = {};
 
-      expect(validateWritePayload(userMeta, config, adminUser, { email: "admin@example.com", role: "ADMIN" })).toEqual({ email: "admin@example.com", role: "ADMIN" });
-      expect(() => validateWritePayload(userMeta, config, adminUser, { role: "OWNER" })).toThrow(RequestValidationError);
+      expect(validateWritePayload(userMeta, config, adminUser, { email: "admin@example.com" })).toEqual({ email: "admin@example.com" });
+      expect(() => validateWritePayload(userMeta, config, adminUser, { role: "ADMIN" })).toThrow(RequestValidationError);
+      expect(() => validateWritePayload(userMeta, { fields: { role: { writeRoles: ["ADMIN"] } } }, adminUser, { role: "OWNER" })).toThrow(RequestValidationError);
    });
 
    test("enforces per-field write roles", () => {

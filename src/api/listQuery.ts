@@ -47,6 +47,7 @@ export function buildListWhere(scope: Record<string, unknown>, filters: Record<s
 export function parseListQuery(req: Request, meta: AdminModelMeta, model: FullRegisteredModel, databaseProvider?: string) {
    const pageValue = Number(getQueryValue(req, "page") ?? 1);
    if (!Number.isInteger(pageValue) || pageValue < 1) throw new RequestValidationError("Query parameter \"page\" must be a positive integer.");
+   if (pageValue > 10_000) throw new RequestValidationError("Query parameter \"page\" must be 10,000 or fewer.");
 
    const sort = getQueryValue(req, "sort") ?? model.resolved.defaultSort.field;
    const dir = getQueryValue(req, "dir") ?? model.resolved.defaultSort.direction;

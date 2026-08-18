@@ -55,9 +55,28 @@ export function applyCreateScope(data: Record<string, unknown>, scope: ScopeFilt
 
 /** Prevent a caller from moving a record out of its authorized scope. */
 export function assertScopeFieldsUnchanged(data: Record<string, unknown>, scope: ScopeFilter): void {
-   for (const fieldName of Object.keys(scope)) {
+   for (const fieldName of collectScopeFieldNames(scope)) {
       if (data[fieldName] !== undefined) {
          throw new RequestValidationError(`Field "${fieldName}" is controlled by the configured scope and cannot be updated through the admin.`);
       }
    }
+}
+
+/**
+ * Return every scalar field named by a Prisma where tree.  This deliberately
+ * errs on the side of locking too much: an update must never be able to alter
+ * a value that a nested AND/OR/NOT predicate uses to establish its scope.
+ */
+export function collectScopeFieldNames(scope: ScopeFilter): Set<string> {
+   const names = new Set<string>();
+   const visit = (value: unknown) => {
+      if (Array.isArray(value)) return void value.forEach(visit);
+      if (value === null || typeof value !== "object") return;
+      for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+         if (key !== "AND" && key !== "OR" && key !== "NOT") names.add(key);
+         visit(child);
+      }
+   };
+   visit(scope);
+   return names;
 }

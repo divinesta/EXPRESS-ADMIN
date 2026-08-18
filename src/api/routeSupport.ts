@@ -59,8 +59,9 @@ export function parseRecordId(meta: AdminModelMeta, rawId: string): string | num
    const idField = meta.fields.find((field) => field.name === meta.idField);
    if (idField?.type !== "number") return rawId;
 
+   if (!/^-?(?:0|[1-9]\d*)$/.test(rawId)) throw new RequestValidationError(`Record ID for "${meta.name}" must be an integer.`);
    const id = Number(rawId);
-   if (!Number.isInteger(id)) throw new RequestValidationError(`Record ID for "${meta.name}" must be an integer.`);
+   if (!Number.isSafeInteger(id)) throw new RequestValidationError(`Record ID for "${meta.name}" must be a safe integer.`);
    return id;
 }
 

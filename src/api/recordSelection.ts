@@ -16,7 +16,7 @@ function getDelegate(prisma: PrismaLike, meta: AdminModelMeta): SelectionDelegat
    return delegate;
 }
 
-/** Build the smallest safe Prisma select needed for detail and list records. */
+/** Build the safe select used by detail and edit endpoints. */
 export function buildRecordSelect(meta: AdminModelMeta, model: FullRegisteredModel): Record<string, true | { select: Record<string, true> }> {
    const select: Record<string, true | { select: Record<string, true> }> = Object.fromEntries(
       meta.fields.filter((field) => field.type !== "relation" && isFieldVisible(field, model.raw)).map((field) => [field.name, true]),
@@ -30,6 +30,22 @@ export function buildRecordSelect(meta: AdminModelMeta, model: FullRegisteredMod
       select[field.name] = { select: { [field.relation.displayField]: true } };
    }
 
+   return select;
+}
+
+/** Only return columns the list is configured to display, plus the primary key. */
+export function buildListRecordSelect(meta: AdminModelMeta, model: FullRegisteredModel): Record<string, true | { select: Record<string, true> }> {
+   const allowed = new Set([meta.idField, ...model.resolved.listDisplay]);
+   const select: Record<string, true | { select: Record<string, true> }> = Object.fromEntries(
+      meta.fields.filter((field) => field.type !== "relation" && allowed.has(field.name) && isFieldVisible(field, model.raw)).map((field) => [field.name, true]),
+   );
+   select[meta.idField] = true;
+   for (const fieldName of model.resolved.listDisplay) {
+      const field = meta.fields.find((candidate) => candidate.name === fieldName);
+      if (!field?.relation || !isFieldVisible(field, model.raw)) continue;
+      if (field.relation.kind !== "belongsTo" && field.relation.kind !== "hasOne") continue;
+      if (!isSensitiveFieldName(field.relation.displayField)) select[field.name] = { select: { [field.relation.displayField]: true } };
+   }
    return select;
 }
 
@@ -53,7 +69,9 @@ export async function assertSelectedRelationsAreVisible(
       if (selectedId === null) continue;
 
       const relatedModel = modelsByName.get(relation.model);
-      if (!relatedModel) continue;
+      if (!relatedModel) {
+         throw new RequestValidationError(`Relation "${relationField.name}" cannot be changed because related model "${relation.model}" is not registered.`);
+      }
       if (!hasModelPermission(adminUser, relatedModel.resolved.permissions, "list")) throw new PermissionDeniedError();
 
       const relatedScope = await resolveScope(relatedModel.raw, adminUser);
