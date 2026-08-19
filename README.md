@@ -1,5 +1,7 @@
 # Prisma Express Admin
 
+> **Rebranded as [PanelJS](https://www.npmjs.com/package/paneljs).** New work lives at [`paneljs`](https://github.com/divinesta/paneljs) (`paneljs`, `@paneljs/express`, `@paneljs/prisma`). This package remains as a compatibility name; prefer PanelJS for new projects.
+
 A Django-admin-like admin panel for Express and Prisma. It introspects your
 Prisma schema, exposes protected scalar CRUD routes, and serves a schema-driven
 operations UI.

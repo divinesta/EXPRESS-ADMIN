@@ -1,6 +1,6 @@
 {
   "name": "prisma-express-admin",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "A Django-like admin panel for Express and Prisma, with optional built-in admin authentication",
   "license": "MIT",
   "main": "./dist/index.js",
@@ -16,7 +16,7 @@
   "bugs": {
     "url": "https://github.com/divinesta/EXPRESS-ADMIN/issues"
   },
-  "homepage": "https://express-admin-chi.vercel.app",
+  "homepage": "https://planjs.com",
   "keywords": [
     "express",
     "prisma",

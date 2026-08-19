@@ -4,6 +4,13 @@ All notable changes to Prisma Express Admin are documented here.
 
 ## Unreleased
 
+## 0.5.4 - 19-08-26
+
+### Changed
+
+- Documented the rebrand to [PanelJS](https://www.npmjs.com/package/paneljs). New
+  development is on `paneljs` / `@paneljs/express` / `@paneljs/prisma`.
+
 ## 0.5.3 - 19-08-26
 
 ### Security
