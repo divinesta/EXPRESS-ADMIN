@@ -116,6 +116,12 @@ export interface AdminFieldMeta {
       foreignKeyFields: string[];
 
       /**
+       * Referential action Prisma applies when the related parent record is
+       * deleted. Used by delete confirmation previews to show cascade children.
+       */
+      onDelete?: string | null;
+
+      /**
        * Which field on the related model to display in dropdowns
        * and relation selectors. e.g. "email", "name", "title"
        * The introspector picks this automatically (first unique string field).

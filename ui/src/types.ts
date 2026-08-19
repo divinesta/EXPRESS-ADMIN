@@ -13,6 +13,7 @@ export type Field = {
     displayField: string;
     kind: "belongsTo" | "hasMany" | "manyToMany" | "hasOne";
     foreignKeyFields: string[];
+    onDelete?: string | null;
   } | null;
 };
 
@@ -58,6 +59,20 @@ export type Schema = {
 };
 
 export type RecordData = Record<string, unknown>;
+
+export type DeletePreviewRelation = {
+  fieldName: string;
+  modelName: string;
+  pluralName: string;
+  idField: string;
+  displayField: string;
+  recordsByParentId: Record<string, RecordData[]>;
+};
+
+export type DeletePreview = {
+  records: RecordData[];
+  relations: DeletePreviewRelation[];
+};
 
 export type LoadState =
   | { status: "loading" }

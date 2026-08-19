@@ -651,6 +651,16 @@ a {
    border-color: #f0d7d2;
    color: #b55e4e;
 }
+.secondary-button:disabled,
+.danger-button:disabled {
+   cursor: not-allowed;
+   opacity: 0.55;
+}
+.danger-button:hover:not(:disabled) {
+   background: #fff6f4;
+   border-color: #d78370;
+   color: #9d4f42;
+}
 
 /* List / table */
 .list-toolbar {
@@ -915,6 +925,11 @@ th {
    color: #6d9639;
    opacity: 1;
 }
+.column-label {
+   color: inherit;
+   display: inline-flex;
+   font: inherit;
+}
 td {
    border-bottom: 1px solid #edf1f2;
    color: #445b63;
@@ -1150,42 +1165,84 @@ tbody tr:last-child td {
    flex-direction: column;
    gap: 7px;
 }
-.relation-search-row {
-   display: flex;
-   gap: 8px;
-}
-.relation-search-row input {
+.relation-search-box {
+   align-items: center;
    background: #fbfcfc;
    border: 1px solid #dfe7e9;
    border-radius: 9px;
+   display: flex;
+   flex-wrap: wrap;
+   gap: 7px;
+   min-height: 46px;
+   padding: 5px 7px;
+}
+.relation-search-box input {
+   background: transparent;
+   border: 0;
    color: #2d464e;
    flex: 1;
    font-size: 14px;
    outline: 0;
-   min-height: 46px;
-   padding: 0 13px;
+   min-height: 34px;
    min-width: 0;
+   padding: 0 6px;
 }
-.relation-search-row input:focus {
+.relation-search-box:focus-within {
    border-color: #a8d96a;
    box-shadow: 0 0 0 3px rgba(168, 217, 106, 0.14);
 }
-.relation-select.has-error .relation-search-row input {
+.relation-search-box.is-readonly {
+   background: #f7f9fa;
+}
+.relation-select.has-error .relation-search-box {
    border-color: #d78370;
 }
-.relation-clear {
-   background: #fff;
-   border: 1px solid #dfe7e9;
+.relation-selection-chip {
+   align-items: center;
+   background: #edf1f2;
+   border: 1px solid #dce6e8;
    border-radius: 7px;
-   color: #657a81;
-   cursor: pointer;
-   font-size: 11px;
-   padding: 0 11px;
+   color: #38525c;
+   display: inline-flex;
+   font-size: 12px;
+   gap: 7px;
+   line-height: 1.2;
+   max-width: min(100%, 420px);
+   min-height: 32px;
+   padding: 6px 7px 6px 10px;
 }
-.relation-clear:hover {
-   background: #f5f8f0;
-   border-color: #c7dca0;
-   color: #4b6730;
+.relation-selection-chip span {
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+.relation-selection-chip button {
+   align-items: center;
+   background: transparent;
+   border: 0;
+   border-radius: 5px;
+   color: #71858c;
+   cursor: pointer;
+   display: inline-flex;
+   flex-shrink: 0;
+   height: 22px;
+   justify-content: center;
+   opacity: 0;
+   padding: 0;
+   transition:
+      background 140ms ease,
+      color 140ms ease,
+      opacity 140ms ease;
+   width: 22px;
+}
+.relation-selection-chip:hover button,
+.relation-selection-chip button:focus-visible {
+   opacity: 1;
+}
+.relation-selection-chip button:hover,
+.relation-selection-chip button:focus-visible {
+   background: #fff;
+   color: #b55e4e;
 }
 .relation-help {
    color: #80929a;
@@ -1289,6 +1346,141 @@ tbody tr:last-child td {
 .form-actions > .primary-button {
    min-height: 44px;
    padding: 0 16px;
+}
+
+/* Delete confirmation */
+.delete-confirm-page {
+   max-width: 1120px;
+}
+.delete-confirm-layout {
+   align-items: flex-start;
+   display: grid;
+   gap: 24px;
+   grid-template-columns: 1fr auto;
+   margin-bottom: 22px;
+}
+.back-link {
+   align-items: center;
+   color: var(--text-muted);
+   display: inline-flex;
+   font-size: 12px;
+   gap: 5px;
+   margin-bottom: 18px;
+}
+.back-link:hover {
+   color: var(--text-primary);
+}
+.delete-confirm-heading {
+   align-items: flex-start;
+   display: flex;
+   gap: 12px;
+}
+.confirm-icon {
+   align-items: center;
+   background: color-mix(in srgb, var(--danger) 11%, var(--surface-raised));
+   border: 1px solid color-mix(in srgb, var(--danger) 35%, var(--border));
+   border-radius: 8px;
+   color: var(--danger);
+   display: inline-flex;
+   height: 38px;
+   justify-content: center;
+   width: 38px;
+}
+.delete-confirm-heading h1 {
+   color: var(--text-primary);
+   font-size: clamp(28px, 5vw, 40px);
+   letter-spacing: -0.04em;
+   line-height: 1;
+   margin: 0;
+}
+.delete-confirm-heading p {
+   color: var(--text-secondary);
+   font-size: 14px;
+   line-height: 1.5;
+   margin: 9px 0 0;
+   max-width: 640px;
+}
+.delete-confirm-actions {
+   display: flex;
+   gap: 10px;
+   justify-content: flex-end;
+   padding-top: 34px;
+}
+.delete-confirm-actions .secondary-button,
+.delete-confirm-actions .danger-button {
+   align-items: center;
+   display: inline-flex;
+   gap: 7px;
+   justify-content: center;
+   min-height: 42px;
+   padding: 0 14px;
+}
+.delete-tree {
+   background: var(--surface-raised);
+   border: 1px solid var(--border);
+   border-radius: 12px;
+   overflow: hidden;
+}
+.delete-tree-item {
+   padding: 16px 18px;
+}
+.delete-tree-item + .delete-tree-item {
+   border-top: 1px solid var(--border);
+}
+.delete-parent-row {
+   align-items: flex-start;
+   border-radius: 6px;
+   display: flex;
+   gap: 12px;
+   justify-content: space-between;
+   min-height: 30px;
+}
+.delete-parent-row strong {
+   color: var(--text-primary);
+   font-size: 15px;
+   font-weight: 600;
+   min-width: 0;
+   overflow: hidden;
+   text-overflow: ellipsis;
+   white-space: nowrap;
+}
+.delete-parent-row span,
+.delete-child-list span {
+   color: var(--text-muted);
+   flex-shrink: 0;
+   font-family: "DM Mono", monospace;
+   font-size: 12px;
+}
+.delete-child-list {
+   display: grid;
+   gap: 8px;
+   list-style: none;
+   margin: 8px 0 0 22px;
+   padding: 0;
+}
+.delete-child-list li {
+   align-items: flex-start;
+   display: grid;
+   gap: 8px;
+   grid-template-columns: 18px 1fr;
+}
+.delete-child-list strong {
+   color: var(--text-secondary);
+   display: block;
+   font-size: 15px;
+   font-weight: 500;
+   line-height: 1.35;
+}
+.delete-child-list span:not(.tree-branch) {
+   display: block;
+   margin-top: 2px;
+}
+.tree-branch {
+   border-bottom: 1px solid var(--border-strong);
+   border-left: 1px solid var(--border-strong);
+   border-radius: 0 0 0 6px;
+   height: 18px;
+   width: 18px;
 }
 
 /* Empty / full-page states */
@@ -1592,11 +1784,12 @@ body,
 .arrow, .metric-foot { color: var(--accent); }
 .primary-button, .search-box button { background: var(--action-background); color: var(--on-action); }
 .primary-button:hover, .search-box button:hover { background: var(--action-hover); color: var(--on-action); }
-.secondary-button, .relation-clear, .pagination button { background: var(--surface-raised); border-color: var(--border); color: var(--text-secondary); }
-.secondary-button:hover, .relation-clear:hover, .pagination button:not(:disabled):hover { background: var(--accent-wash); border-color: var(--accent); color: var(--accent-strong); }
-.search-box, .filter-control, .action-bar select, .form-field input:not([type="checkbox"]), .form-field select, .relation-search-row input, .relation-results, .toggle-line { background: var(--surface-input); border-color: var(--border); color: var(--text-primary); }
-.search-box input, .filter-control input, .filter-control select, .form-field input:not([type="checkbox"]), .form-field select, .relation-search-row input, .relation-results button { color: var(--text-primary); }
-.search-box:focus-within, .filter-control:focus-within, .form-field input:focus, .form-field select:focus, .relation-search-row input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--focus-ring); }
+.secondary-button, .pagination button { background: var(--surface-raised); border-color: var(--border); color: var(--text-secondary); }
+.secondary-button:hover, .pagination button:not(:disabled):hover { background: var(--accent-wash); border-color: var(--accent); color: var(--accent-strong); }
+.search-box, .filter-control, .action-bar select, .form-field input:not([type="checkbox"]), .form-field select, .relation-search-box, .relation-results, .toggle-line { background: var(--surface-input); border-color: var(--border); color: var(--text-primary); }
+.search-box input, .filter-control input, .filter-control select, .form-field input:not([type="checkbox"]), .form-field select, .relation-search-box input, .relation-results button { color: var(--text-primary); }
+.search-box:focus-within, .filter-control:focus-within, .form-field input:focus, .form-field select:focus, .relation-search-box:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--focus-ring); }
+.relation-selection-chip { background: var(--tag-background); border-color: var(--border); color: var(--tag-text); }
 .action-bar, th { background: var(--surface-subtle); border-color: var(--border); color: var(--text-muted); }
 td, .detail-row dd, .table-primary-cell, .field-name { color: var(--text-secondary); border-color: var(--border); }
 .clickable-row:hover { background: var(--table-row-hover); }
@@ -1674,7 +1867,6 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 :root[data-theme="dark"] .model-card:hover,
 :root[data-theme="dark"] .breadcrumb-back:hover,
 :root[data-theme="dark"] .secondary-button:hover,
-:root[data-theme="dark"] .relation-clear:hover,
 :root[data-theme="dark"] .pagination button:not(:disabled):hover {
    background: var(--surface-subtle);
    border-color: var(--border-strong);

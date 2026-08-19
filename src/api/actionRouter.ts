@@ -4,6 +4,7 @@ import { DELETE_SELECTED_ACTION } from "../core/defaultActions.js";
 import type { FullRegisteredModel } from "../core/registry.js";
 import type { AdminModelMeta, AuditConfig, PrismaLike } from "../core/types.js";
 import { writeAuditEvent } from "./audit.js";
+import { buildListRecordSelect } from "./recordSelection.js";
 import { PermissionDeniedError, sendApiError } from "./errors.js";
 import { getAdminUser, getRegisteredModel, parseRecordId, route } from "./routeSupport.js";
 import { resolveScope } from "./scope.js";
@@ -37,9 +38,84 @@ function parseIds(meta: AdminModelMeta, body: unknown): Array<string | number> {
    return parsed;
 }
 
+function parseIdsQuery(meta: AdminModelMeta, rawIds: unknown): Array<string | number> {
+   const ids = Array.isArray(rawIds) ? rawIds.flatMap((value) => String(value).split(",")) : typeof rawIds === "string" ? rawIds.split(",") : [];
+   return parseIds(meta, { ids: ids.map((value) => value.trim()).filter(Boolean) });
+}
+
+function findCascadeChildRelation(parent: FullRegisteredModel, child: FullRegisteredModel, relationName: string) {
+   return child.meta.fields.find((field) => {
+      const relation = field.relation;
+      return field.type === "relation"
+         && relation?.kind === "belongsTo"
+         && relation.model === parent.meta.name
+         && relation.relationName === relationName
+         && relation.foreignKeyFields.length === 1
+         && relation.onDelete === "Cascade";
+   });
+}
+
 /** Create scoped, permission-aware routes for registered list-view actions. */
 export function createActionRouter(models: Map<string, FullRegisteredModel>, prisma: PrismaLike, audit?: AuditConfig): Router {
    const router = Router();
+
+   router.get("/:model/actions/delete-preview", route(async (req, res) => {
+         const adminUser = getAdminUser(req, res);
+         if (!adminUser) return;
+         const model = getRegisteredModel(req, res, models);
+         if (!model) return;
+         if (!hasModelPermission(adminUser, model.resolved.permissions, "delete")) {
+            sendApiError(res, new PermissionDeniedError());
+            return;
+         }
+
+         const requestedIds = parseIdsQuery(model.meta, req.query.ids);
+         const scope = await resolveScope(model.raw, adminUser);
+         const delegate = getDelegate(prisma, model.meta);
+         const parentSelect = buildListRecordSelect(model.meta, model);
+         const parentRecords = await delegate.findMany({
+            where: { AND: [scope, { [model.meta.idField]: { in: requestedIds } }] },
+            select: parentSelect,
+         });
+         const ids = parentRecords.map((record) => record[model.meta.idField]).filter((id): id is string | number => typeof id === "string" || typeof id === "number");
+         if (ids.length !== requestedIds.length) throw new RequestValidationError("One or more selected records are unavailable.");
+
+         const relations = [];
+         const modelsByName = new Map([...models.values()].map((entry) => [entry.meta.name, entry]));
+         for (const relationField of model.meta.fields) {
+            const relation = relationField.relation;
+            if (relationField.type !== "relation" || relation?.kind !== "hasMany") continue;
+            const childModel = modelsByName.get(relation.model);
+            if (!childModel || !hasModelPermission(adminUser, childModel.resolved.permissions, "list")) continue;
+            const childRelationField = findCascadeChildRelation(model, childModel, relation.relationName);
+            const childForeignKey = childRelationField?.relation?.foreignKeyFields[0];
+            if (!childForeignKey) continue;
+
+            const childScope = await resolveScope(childModel.raw, adminUser);
+            const childSelect = { ...buildListRecordSelect(childModel.meta, childModel), [childForeignKey]: true };
+            const childRecords = await getDelegate(prisma, childModel.meta).findMany({
+               where: { AND: [childScope, { [childForeignKey]: { in: ids } }] },
+               select: childSelect,
+            });
+            const recordsByParentId: Record<string, Record<string, unknown>[]> = {};
+            for (const record of childRecords) {
+               const parentId = record[childForeignKey];
+               if (typeof parentId !== "string" && typeof parentId !== "number") continue;
+               const key = String(parentId);
+               recordsByParentId[key] = [...(recordsByParentId[key] ?? []), record];
+            }
+            relations.push({
+               fieldName: relationField.name,
+               modelName: childModel.meta.name,
+               pluralName: childModel.meta.pluralName,
+               idField: childModel.meta.idField,
+               displayField: childModel.meta.displayField,
+               recordsByParentId,
+            });
+         }
+
+         res.json({ records: parentRecords, relations });
+   }));
 
    router.post("/:model/actions/:action", route(async (req, res) => {
          const adminUser = getAdminUser(req, res);

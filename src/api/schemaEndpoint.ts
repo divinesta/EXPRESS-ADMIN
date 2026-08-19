@@ -121,5 +121,6 @@ export function createSchemaEndpoint(registry: AdminRegistry, config: AdminConfi
       };
 
       res.json(response);
+      // console.log(response);
    };
 }

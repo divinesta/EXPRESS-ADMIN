@@ -1,3 +1,4 @@
+import { X } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { apiBase, readApiError } from "../api";
 import type { RecordData } from "../types";
@@ -66,33 +67,47 @@ export const RelationSelect = ({ label, model, value, selectedLabel, error, onCh
    const selectRecord = (record: RecordData) => {
       onChange(String(record[model.idField]));
       const displayValue = String(record[model.displayField] ?? record[model.idField]);
-      setQuery(displayValue);
+      setQuery("");
       setSelectionLabel(displayValue);
       setRecords([]);
       setStatus("idle");
    };
 
+   const clearSelection = () => {
+      onChange("");
+      setQuery("");
+      setSelectionLabel("");
+   };
+   const currentSelectionLabel = selectionLabel || selectedLabel || value;
+
    return (
       <div className={`relation-select ${error ? "has-error" : ""}`}>
          <label className="form-label" htmlFor={inputId}>{label}</label>
-         <div className="relation-search-row">
+         <div className={`relation-search-box ${readOnly ? "is-readonly" : ""}`}>
+            {value && (
+               <span className="relation-selection-chip">
+                  <span>{currentSelectionLabel}</span>
+                  {!readOnly && (
+                     <button type="button" aria-label={`Clear selected ${label}`} onClick={clearSelection}>
+                        <X size={13} strokeWidth={2} aria-hidden />
+                     </button>
+                  )}
+               </span>
+            )}
             <input
                id={inputId}
                type="search"
                autoComplete="off"
                aria-controls={listboxId}
-               aria-describedby={`${inputId}-help`}
+               aria-describedby={value ? undefined : `${inputId}-help`}
                aria-expanded={records.length > 0}
                placeholder={`Search ${model.pluralName} by ${model.displayField}`}
                value={query}
                readOnly={readOnly}
                onChange={(event) => setQuery(event.target.value)}
             />
-            {value && !readOnly && <button className="relation-clear" type="button" onClick={() => { onChange(""); setQuery(""); setSelectionLabel(""); }}>Clear</button>}
          </div>
-         <span className="relation-help" id={`${inputId}-help`}>
-            {value ? `Selected: ${selectionLabel || selectedLabel || value}` : "Type at least two characters, then choose a result."}
-         </span>
+         {!value && <span className="relation-help" id={`${inputId}-help`}>Type at least two characters, then choose a result.</span>}
          {status === "loading" && <span className="relation-help">Searching…</span>}
          {status === "error" && <span className="form-error">{message}</span>}
          {status === "ready" && records.length === 0 && <span className="relation-help">No matching records found.</span>}

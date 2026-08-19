@@ -38,7 +38,84 @@ const dispatch = (router: Router, body: Record<string, unknown>, action = "publi
       (router as unknown as { handle: (request: unknown, response: unknown, next: (error?: unknown) => void) => void }).handle(req, res, reject);
    });
 
+const dispatchDeletePreview = (router: Router, ids: string) =>
+   new Promise<{ status: number; body: Record<string, unknown> }>((resolve, reject) => {
+      const req = { method: "GET", url: `/orders/actions/delete-preview?ids=${ids}`, originalUrl: `/orders/actions/delete-preview?ids=${ids}`, query: { ids }, params: {}, body: {}, adminUser };
+      const res = {
+         statusCode: 200,
+         status(status: number) {
+            this.statusCode = status;
+            return this;
+         },
+         json(responseBody: Record<string, unknown>) {
+            resolve({ status: this.statusCode, body: responseBody });
+            return this;
+         },
+      };
+      (router as unknown as { handle: (request: unknown, response: unknown, next: (error?: unknown) => void) => void }).handle(req, res, reject);
+   });
+
 describe("custom actions", () => {
+   test("previews cascade children for selected records before deletion", async () => {
+      const orderMeta: AdminModelMeta = {
+         name: "Order",
+         pluralName: "orders",
+         prismaClientKey: "order",
+         idField: "id",
+         displayField: "reference",
+         searchableFields: ["reference"],
+         filterableFields: [],
+         timestamps: {},
+         fields: [
+            { name: "id", type: "string", prismaType: "String", isId: true, isRequired: true, isUnique: true, isReadOnly: true, isList: false, isFilterable: false, isSearchable: false, defaultValue: null },
+            { name: "reference", type: "string", prismaType: "String", isId: false, isRequired: true, isUnique: true, isReadOnly: false, isList: false, isFilterable: false, isSearchable: true, defaultValue: null },
+            { name: "items", type: "relation", prismaType: "OrderItem", isId: false, isRequired: true, isUnique: false, isReadOnly: false, isList: true, isFilterable: false, isSearchable: false, defaultValue: null, relation: { model: "OrderItem", kind: "hasMany", relationName: "OrderToOrderItem", foreignKeyFields: [], displayField: "id" } },
+         ],
+      };
+      const orderItemMeta: AdminModelMeta = {
+         name: "OrderItem",
+         pluralName: "orderitems",
+         prismaClientKey: "orderItem",
+         idField: "id",
+         displayField: "id",
+         searchableFields: [],
+         filterableFields: [],
+         timestamps: {},
+         fields: [
+            { name: "id", type: "string", prismaType: "String", isId: true, isRequired: true, isUnique: true, isReadOnly: true, isList: false, isFilterable: false, isSearchable: false, defaultValue: null },
+            { name: "quantity", type: "number", prismaType: "Int", isId: false, isRequired: true, isUnique: false, isReadOnly: false, isList: false, isFilterable: false, isSearchable: false, defaultValue: null },
+            { name: "orderId", type: "string", prismaType: "String", isId: false, isRequired: true, isUnique: false, isReadOnly: true, isList: false, isFilterable: true, isSearchable: false, defaultValue: null },
+            { name: "order", type: "relation", prismaType: "Order", isId: false, isRequired: true, isUnique: false, isReadOnly: false, isList: false, isFilterable: false, isSearchable: false, defaultValue: null, relation: { model: "Order", kind: "belongsTo", relationName: "OrderToOrderItem", foreignKeyFields: ["orderId"], onDelete: "Cascade", displayField: "reference" } },
+         ],
+      };
+      const orderModel: FullRegisteredModel = {
+         meta: orderMeta,
+         raw: {},
+         resolved: { listDisplay: ["reference"], listFilter: [], searchFields: ["reference"], defaultSort: { field: "id", direction: "asc" }, perPage: 25, permissions: { delete: ["ADMIN"] } },
+      };
+      const orderItemModel: FullRegisteredModel = {
+         meta: orderItemMeta,
+         raw: {},
+         resolved: { listDisplay: ["quantity"], listFilter: [], searchFields: [], defaultSort: { field: "id", direction: "asc" }, perPage: 25, permissions: { list: ["ADMIN"] } },
+      };
+      const prisma = {
+         order: { findMany: async () => [{ id: "order-a", reference: "Order 00001" }] },
+         orderItem: { findMany: async () => [{ id: "item-a", quantity: 2, orderId: "order-a" }] },
+      } as PrismaLike;
+      const router = createActionRouter(new Map([["orders", orderModel], ["orderitems", orderItemModel]]), prisma);
+
+      const response = await dispatchDeletePreview(router, "order-a");
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject({
+         records: [{ id: "order-a", reference: "Order 00001" }],
+         relations: [{
+            fieldName: "items",
+            modelName: "OrderItem",
+            recordsByParentId: { "order-a": [{ id: "item-a", quantity: 2, orderId: "order-a" }] },
+         }],
+      });
+   });
+
    test("deletes selected records through the built-in, scoped action", async () => {
       const deletedWhere: unknown[] = [];
       const beforeDelete: string[] = [];

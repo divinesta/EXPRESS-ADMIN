@@ -4,6 +4,24 @@ All notable changes to Prisma Express Admin are documented here.
 
 ## Unreleased
 
+## 0.5.2 - 19-08-26
+
+### Added
+
+- Added a Django-style delete confirmation page for selected records, including
+  a preview of registered cascade relationships that will be deleted with the
+  selected parent records.
+- Added delete-preview API support for bulk deletes so the UI can show affected
+  records before the delete action is confirmed.
+
+### Changed
+
+- Relation list columns no longer show sort controls when the backend cannot
+  sort by that relationship field.
+- Relation selectors now show the selected record as an inline chip inside the
+  search control, with a clear action.
+- List pagination now clamps page state to the available page range.
+
 ### Security
 
 - Production registrations now require explicit `permissions`; list payloads

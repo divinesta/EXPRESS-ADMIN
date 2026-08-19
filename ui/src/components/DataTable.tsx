@@ -47,11 +47,15 @@ export const DataTable = ({
                   </th>
                )}
                {fields.map((field) => (
-                  <th aria-sort={sort === field.name ? (dir === "asc" ? "ascending" : "descending") : "none"} key={field.name}>
-                     <button className={`sort-button ${sort === field.name ? "is-sorted" : ""}`} type="button" onClick={() => onSort(field.name)}>
-                        <span>{fieldLabel(field.name)}</span>
-                        {sort === field.name ? dir === "asc" ? <ArrowUp size={12} strokeWidth={2} aria-hidden /> : <ArrowDown size={12} strokeWidth={2} aria-hidden /> : <ArrowUpDown size={12} strokeWidth={1.75} aria-hidden />}
-                     </button>
+                  <th aria-sort={field.type !== "relation" && sort === field.name ? (dir === "asc" ? "ascending" : "descending") : undefined} key={field.name}>
+                     {field.type !== "relation" ? (
+                        <button className={`sort-button ${sort === field.name ? "is-sorted" : ""}`} type="button" onClick={() => onSort(field.name)}>
+                           <span>{fieldLabel(field.name)}</span>
+                           {sort === field.name ? dir === "asc" ? <ArrowUp size={12} strokeWidth={2} aria-hidden /> : <ArrowDown size={12} strokeWidth={2} aria-hidden /> : <ArrowUpDown size={12} strokeWidth={1.75} aria-hidden />}
+                        </button>
+                     ) : (
+                        <span className="column-label">{fieldLabel(field.name)}</span>
+                     )}
                   </th>
                ))}
                {canEdit && <th aria-label="Edit record" />}

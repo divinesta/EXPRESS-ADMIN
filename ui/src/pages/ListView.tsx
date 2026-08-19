@@ -8,7 +8,7 @@ import { DateRangeControl, FilterControl } from "../components/FilterSidebar";
 import { useFilters } from "../hooks/useFilters";
 import { useModelData } from "../hooks/useModelData";
 import { useBulkActions } from "../hooks/useBulkActions";
-import type { Field, Schema } from "../types";
+import type { Field, ListAction, Schema } from "../types";
 
 export const ListView = ({ schema }: { schema: Schema }) => {
    const { model: modelPath } = useParams();
@@ -23,11 +23,15 @@ export const ListView = ({ schema }: { schema: Schema }) => {
    const data = useModelData(model, page, search, filters, sort, dir);
    const bulkActions = useBulkActions(model);
    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+   const totalPages = Math.max(data.totalPages, 1);
    useEffect(() => {
       setSearchDraft(""); setSearch(""); setPage(1);
       setSort(model?.config.defaultSort.field ?? "createdAt"); setDir(model?.config.defaultSort.direction ?? "desc");
       resetFilters(); setSelectedIds(new Set());
    }, [modelPath]);
+   useEffect(() => {
+      if (data.status === "ready" && page > totalPages) setPage(totalPages);
+   }, [data.status, page, totalPages]);
    if (!model || !model.config.permissions.list) return <NotFound />;
    const listFields = model.config.listDisplay.map((name) => model.meta.fields.find((field) => field.name === name)).filter((field): field is Field => Boolean(field));
    const filterFields = model.config.listFilter.map((name) => model.meta.fields.find((field) => field.name === name)).filter((field): field is Field => Boolean(field));
@@ -49,17 +53,23 @@ export const ListView = ({ schema }: { schema: Schema }) => {
       setPage(1);
       updateFilter(name, value);
    };
-   const runAction = async (action: { name: string; label: string }) => {
+   const goToPreviousPage = () => setPage((current) => Math.max(1, current - 1));
+   const goToNextPage = () => setPage((current) => Math.min(totalPages, current + 1));
+   const executeAction = async (action: ListAction) => {
       const ids = [...selectedIds];
-      const message =
-         action.name === "delete_selected"
-            ? `Delete ${ids.length} selected ${ids.length === 1 ? "record" : "records"}? This cannot be undone.`
-            : `Run “${action.label}” for ${ids.length} selected ${ids.length === 1 ? "record" : "records"}?`;
+      const message = `Run “${action.label}” for ${ids.length} selected ${ids.length === 1 ? "record" : "records"}?`;
       if (!window.confirm(message)) return;
       if (await bulkActions.run(action.name, ids)) {
          setSelectedIds(new Set());
          data.refresh();
       }
+   };
+   const runAction = (action: ListAction) => {
+      if (action.name === "delete_selected") {
+         navigate(`/${model.meta.pluralName}/delete?${new URLSearchParams({ ids: [...selectedIds].join(",") })}`);
+         return;
+      }
+      void executeAction(action);
    };
    return (
       <section className="page-section">
@@ -171,13 +181,13 @@ export const ListView = ({ schema }: { schema: Schema }) => {
                      Showing {data.records.length ? (page - 1) * model.config.perPage + 1 : 0}–{Math.min((page - 1) * model.config.perPage + data.records.length, data.total)} of {data.total}
                   </span>
                   <div className="pagination">
-                     <button type="button" aria-label="Previous page" disabled={page <= 1} onClick={() => setPage((current) => current - 1)}>
+                     <button type="button" aria-label="Previous page" disabled={page <= 1} onClick={goToPreviousPage}>
                         <ChevronLeft size={14} strokeWidth={2} aria-hidden />
                      </button>
                      <span>
-                        Page {page} of {data.totalPages}
+                        Page {page} of {totalPages}
                      </span>
-                     <button type="button" aria-label="Next page" disabled={page >= data.totalPages} onClick={() => setPage((current) => current + 1)}>
+                     <button type="button" aria-label="Next page" disabled={page >= totalPages} onClick={goToNextPage}>
                         <ChevronRight size={14} strokeWidth={2} aria-hidden />
                      </button>
                   </div>

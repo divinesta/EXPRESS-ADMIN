@@ -4,6 +4,7 @@ import { BrowserRouter, NavLink, Route, Routes, useLocation, useNavigate } from 
 import { FullPageState, NotFound } from "./components/Feedback";
 import { CreateView } from "./pages/CreateView";
 import { Dashboard } from "./pages/Dashboard";
+import { DeleteConfirmationPage } from "./pages/DeleteConfirmationPage";
 import { ListView } from "./pages/ListView";
 import { useSchema } from "./hooks/useSchema";
 import { ThemeProvider, ThemeSettings } from "./components/ThemeProvider";
@@ -116,6 +117,7 @@ const AdminShell = ({ schema }: { schema: Schema }) => {
                <Routes>
                   <Route path="/" element={<Dashboard schema={schema} />} />
                   <Route path="/:model/new" element={<CreateView schema={schema} mode="create" />} />
+                  <Route path="/:model/delete" element={<DeleteConfirmationPage schema={schema} />} />
                   <Route path="/:model/:id/edit" element={<CreateView schema={schema} mode="edit" />} />
                   <Route path="/:model/:id" element={<CreateView schema={schema} mode="view" />} />
                   <Route path="/:model" element={<ListView schema={schema} />} />

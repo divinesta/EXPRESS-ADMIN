@@ -245,6 +245,7 @@ function introspectField(field: DMMF.Field, enumValuesMap: Map<string, string[]>
          kind,
          relationName: field.relationName,
          foreignKeyFields: field.relationFromFields ? [...field.relationFromFields] : [],
+         onDelete: field.relationOnDelete ?? null,
          displayField: "id", // patched in second pass
       };
    }
