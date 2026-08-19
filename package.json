@@ -1,6 +1,6 @@
 {
   "name": "prisma-express-admin",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "A Django-like admin panel for Express and Prisma, with optional built-in admin authentication",
   "license": "MIT",
   "main": "./dist/index.js",

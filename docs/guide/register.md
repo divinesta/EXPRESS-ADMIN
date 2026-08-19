@@ -46,7 +46,7 @@ admin.register("Post", {
     delete: ["SUPER_ADMIN"],
   },
   scope: async (adminUser) =>
-    adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId },
+    adminUser.isSuperAdmin ? {} : { tenantId: adminUser.tenantId ?? "__no_tenant__" },
 });
 ```
 

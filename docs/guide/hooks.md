@@ -27,7 +27,7 @@ admin.register("User", {
 | --- | --- | --- |
 | `beforeCreate` | After validate + create-scope, before `create` | yes, return the object |
 | `afterCreate` | After insert | no |
-| `beforeUpdate` | After validate + scope-field lock, before `updateMany` | yes |
+| `beforeUpdate` | After the scoped row is found + validate + scope-field lock, before `updateMany` | yes |
 | `afterUpdate` | After reload | no |
 | `beforeDelete` | After the scoped row is found, before `deleteMany` | throw to abort |
 | `afterDelete` | After delete | no |

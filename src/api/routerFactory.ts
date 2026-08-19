@@ -113,6 +113,14 @@ export function createCrudRouter(models: Map<string, FullRegisteredModel>, prism
 
       const scope = await resolveScope(model.raw, adminUser);
       const id = getRecordId(req, model.meta);
+      const delegate = getDelegate(prisma, model.meta);
+      const where = buildScopedRecordWhere(scope, model.meta.idField, id);
+      const existingRecord = await delegate.findFirst({ where, select: { [model.meta.idField]: true } });
+      if (!existingRecord) {
+         sendApiError(res, new RecordNotFoundError());
+         return;
+      }
+
       let data = validateWritePayload(model.meta, model.raw, adminUser, req.body);
       assertScopeFieldsUnchanged(data, scope);
       assertScopeRelationsUnchanged(data, model, scope);
@@ -124,8 +132,6 @@ export function createCrudRouter(models: Map<string, FullRegisteredModel>, prism
          await assertSelectedRelationsAreVisible(data, model, models, prisma, adminUser);
       }
 
-      const delegate = getDelegate(prisma, model.meta);
-      const where = buildScopedRecordWhere(scope, model.meta.idField, id);
       const result = await delegate.updateMany({ where, data });
       if (result.count === 0) {
          sendApiError(res, new RecordNotFoundError());

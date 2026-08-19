@@ -22,7 +22,7 @@ interface AdminUser {
 
 | Field | Typical use |
 | --- | --- |
-| `tenantId` | `scope: () => ({ tenantId: adminUser.tenantId })` |
+| `tenantId` | `scope: () => ({ tenantId: adminUser.tenantId ?? "__no_tenant__" })` |
 | `institutionId` | Same idea, older name — both exist |
 | `metadata` | Anything else `scope` or hooks need |
 

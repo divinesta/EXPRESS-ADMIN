@@ -110,15 +110,13 @@ export function createAdmin(config: AdminConfig): Admin {
          router.use("/api", isBuiltInAuth(config.auth)
             ? createBuiltInAuthenticationMiddleware(config.prisma, config.auth)
             : createAuthenticationMiddleware(config.auth));
-         if (isBuiltInAuth(config.auth)) {
-            router.use("/api", (req, res, next) => {
-               if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method) && !isSameOriginMutation(req)) {
-                  res.status(403).json({ error: "Cross-origin requests are not allowed.", code: "ORIGIN_FORBIDDEN" });
-                  return;
-               }
-               next();
-            });
-         }
+         router.use("/api", (req, res, next) => {
+            if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method) && !isSameOriginMutation(req)) {
+               res.status(403).json({ error: "Cross-origin requests are not allowed.", code: "ORIGIN_FORBIDDEN" });
+               return;
+            }
+            next();
+         });
          router.use("/api", (_req, res, next) => {
             res.setHeader("Cache-Control", "private, no-store");
             next();

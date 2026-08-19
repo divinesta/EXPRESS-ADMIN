@@ -15,7 +15,27 @@ export type ScopeFilter = Record<string, unknown>;
  * into an ID condition would allow overlapping keys to overwrite one another.
  */
 export async function resolveScope(config: ModelConfig, adminUser: AdminUser): Promise<ScopeFilter> {
-   return (await config.scope?.(adminUser)) ?? {};
+   const scope = (await config.scope?.(adminUser)) ?? {};
+   assertNoUndefinedScopeValues(scope);
+   return scope;
+}
+
+function assertNoUndefinedScopeValues(value: unknown, path: string[] = []): void {
+   if (value === undefined) {
+      const label = path.length ? path.join(".") : "scope";
+      throw new RequestValidationError(`Scope field "${label}" resolved to undefined. Return a concrete value or a match-nothing fallback instead.`);
+   }
+
+   if (Array.isArray(value)) {
+      value.forEach((item, index) => assertNoUndefinedScopeValues(item, [...path, String(index)]));
+      return;
+   }
+
+   if (value === null || typeof value !== "object") return;
+
+   for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+      assertNoUndefinedScopeValues(child, [...path, key]);
+   }
 }
 
 /**

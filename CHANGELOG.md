@@ -4,6 +4,23 @@ All notable changes to Prisma Express Admin are documented here.
 
 ## Unreleased
 
+## 0.5.3 - 19-08-26
+
+### Security
+
+- Scope resolution now rejects `undefined` values anywhere in the returned Prisma
+  `where` fragment, preventing missing tenant context from silently removing the
+  tenant filter.
+- Same-origin mutation checks now apply to external authentication adapters as
+  well as built-in auth, reducing CSRF risk for cookie-backed host sessions.
+- `beforeUpdate` hooks now run only after the target row has been found inside
+  the admin user's scope, matching delete-hook behavior.
+
+### Changed
+
+- Updated scope and hook documentation to show match-nothing fallbacks for
+  missing tenant context and the new `beforeUpdate` execution order.
+
 ## 0.5.2 - 19-08-26
 
 ### Added

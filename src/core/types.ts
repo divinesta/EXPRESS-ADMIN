@@ -297,9 +297,13 @@ export interface ModelConfig {
     * Critical for multi-tenant apps. Return a Prisma where clause.
     *
     * e.g. Only show records belonging to the admin's institution:
-    *   scope: async (adminUser) => ({ institutionId: adminUser.institutionId })
+    *   scope: async (adminUser) => adminUser.isSuperAdmin
+    *      ? {}
+    *      : { institutionId: adminUser.institutionId ?? "__no_institution__" }
     *
     * SUPER_ADMIN returns {} to see everything.
+    * Scope values must not resolve to undefined; use a concrete match-nothing
+    * fallback when the authenticated admin is missing required context.
     */
    scope?: (adminUser: AdminUser) => Promise<Record<string, unknown>>;
 
