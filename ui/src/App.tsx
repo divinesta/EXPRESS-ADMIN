@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowLeft, Home, LayoutDashboard, Menu } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Home, Info, LayoutDashboard, Menu, Star } from "lucide-react";
 import { BrowserRouter, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { FullPageState, NotFound } from "./components/Feedback";
 import { CreateView } from "./pages/CreateView";
@@ -85,6 +85,17 @@ const AdminShell = ({ schema }: { schema: Schema }) => {
             </div>
          </aside>
          <main className="main-panel">
+            <div className="rebrand-notice" role="note">
+               <Info size={16} strokeWidth={1.9} aria-hidden />
+               <p><strong>Prisma Admin has been rebranded as PanelJS</strong> to support other ORMs. (This package will be deprecated soon)</p>
+               <a href="https://paneljs.com" target="_blank" rel="noreferrer">
+                  Visit paneljs.com <ArrowUpRight size={14} strokeWidth={2} aria-hidden />
+               </a>
+               <a className="rebrand-star-link" href="https://github.com/divinesta/paneljs" target="_blank" rel="noreferrer">
+                  <Star size={14} strokeWidth={2} aria-hidden />
+                  Enjoying it? Star PanelJS
+               </a>
+            </div>
             <header className="topbar">
                <div className="topbar-left">
                   <button className="menu-button" type="button" aria-label="Open navigation" onClick={() => setSidebarOpen(true)}>

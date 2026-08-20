@@ -285,6 +285,43 @@ a {
    min-width: 0;
    width: calc(100% - 264px);
 }
+.rebrand-notice {
+   align-items: center;
+   background: var(--accent-wash);
+   border-bottom: 1px solid var(--border);
+   color: var(--text-secondary);
+   display: flex;
+   font-size: 13px;
+   gap: 9px;
+   min-height: 42px;
+   padding: 8px 28px;
+}
+.rebrand-notice > svg {
+   color: var(--accent-strong);
+   flex: 0 0 auto;
+}
+.rebrand-notice p {
+   margin: 0;
+}
+.rebrand-notice strong {
+   color: var(--text-primary);
+}
+.rebrand-notice a {
+   align-items: center;
+   color: var(--accent-strong);
+   display: inline-flex;
+   font-weight: 600;
+   gap: 3px;
+   margin-left: auto;
+   white-space: nowrap;
+}
+.rebrand-notice .rebrand-star-link {
+   margin-left: 12px;
+}
+.rebrand-notice a:hover {
+   color: var(--text-primary);
+   text-decoration: underline;
+}
 .topbar {
    align-items: center;
    background: rgba(245, 247, 251, 0.9);
@@ -1647,6 +1684,21 @@ tbody tr:last-child td {
    .topbar {
       height: 52px;
       padding: 0 14px;
+   }
+   .rebrand-notice {
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 5px 8px;
+      padding: 9px 14px;
+   }
+   .rebrand-notice p {
+      flex: 1 1 calc(100% - 24px);
+   }
+   .rebrand-notice a {
+      margin-left: 24px;
+   }
+   .rebrand-notice .rebrand-star-link {
+      margin-left: 0;
    }
    .menu-button {
       display: inline-flex;
